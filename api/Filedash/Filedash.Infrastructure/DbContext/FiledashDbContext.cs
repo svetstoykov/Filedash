@@ -10,11 +10,11 @@ public partial class FiledashDbContext : Microsoft.EntityFrameworkCore.DbContext
     {
     }
     
-    public virtual DbSet<UploadFile> UploadedFiles { get; set; }
+    public virtual DbSet<UploadedFile> UploadedFiles { get; set; }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<UploadFile>(entity =>
+        modelBuilder.Entity<UploadedFile>(entity =>
         {
             entity.Property(e => e.Extension)
                 .HasMaxLength(10)

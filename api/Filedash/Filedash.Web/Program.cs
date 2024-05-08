@@ -1,6 +1,6 @@
 using Filedash.Domain.IoC;
 using Filedash.Infrastructure.IoC;
-using Filedash.StartUp.IoC;
+using Filedash.Web.IoC;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
@@ -8,7 +8,7 @@ var services = builder.Services;
 services
     .AddDomainServices()
     .AddInfrastructureServices(builder.Configuration)
-    .AddWebServices();
+    .AddWebServices(builder.Configuration);
 
 var app = builder.Build();
 
@@ -20,5 +20,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseRouting();
+app.UseEndpoints(e => e.MapControllers());
 
 app.Run();
