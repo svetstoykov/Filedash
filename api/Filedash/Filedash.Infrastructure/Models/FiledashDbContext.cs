@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.EntityFrameworkCore;
 using File = Filedash.Domain.Models.File;
 
 namespace Filedash.Infrastructure.Models;
@@ -12,15 +9,24 @@ public partial class FiledashDbContext : DbContext
         : base(dbContextOptions)
     {
     }
-
+    
     public virtual DbSet<File> Files { get; set; }
-
+    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<File>(entity =>
         {
-            entity.Property(e => e.Extension).HasMaxLength(10);
-            entity.Property(e => e.Name).HasMaxLength(50);
+            entity.Property(e => e.Extension)
+                .HasMaxLength(10)
+                .IsRequired();
+            
+            entity.Property(e => e.Name)
+                .HasMaxLength(50)
+                .IsRequired();
+
+            entity
+                .Property(e => e.Content)
+                .IsRequired();
         });
     }
 }
