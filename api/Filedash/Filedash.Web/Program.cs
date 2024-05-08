@@ -6,9 +6,9 @@ var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
 
 services
+    .AddDomainServices()
     .AddInfrastructureServices(builder.Configuration)
-    .AddWebServices()
-    .AddDomainServices();
+    .AddWebServices();
 
 var app = builder.Build();
 

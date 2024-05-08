@@ -1,4 +1,4 @@
-﻿using Filedash.Infrastructure.Models;
+﻿using Filedash.Infrastructure.DbContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

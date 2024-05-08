@@ -1,20 +1,20 @@
-﻿using Microsoft.EntityFrameworkCore;
-using File = Filedash.Domain.Models.File;
+﻿using Filedash.Domain.Models;
+using Microsoft.EntityFrameworkCore;
 
-namespace Filedash.Infrastructure.Models;
+namespace Filedash.Infrastructure.DbContext;
 
-public partial class FiledashDbContext : DbContext
+public partial class FiledashDbContext : Microsoft.EntityFrameworkCore.DbContext
 {
     public FiledashDbContext(DbContextOptions<FiledashDbContext> dbContextOptions) 
         : base(dbContextOptions)
     {
     }
     
-    public virtual DbSet<File> Files { get; set; }
+    public virtual DbSet<UploadFile> Files { get; set; }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<File>(entity =>
+        modelBuilder.Entity<UploadFile>(entity =>
         {
             entity.Property(e => e.Extension)
                 .HasMaxLength(10)
