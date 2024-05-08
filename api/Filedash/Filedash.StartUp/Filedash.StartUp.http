@@ -1,0 +1,6 @@
+@Filedash.StartUp_HostAddress = http://localhost:5032
+
+GET {{Filedash.StartUp_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
