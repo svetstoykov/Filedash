@@ -10,7 +10,7 @@ public partial class FiledashDbContext : Microsoft.EntityFrameworkCore.DbContext
     {
     }
     
-    public virtual DbSet<UploadFile> Files { get; set; }
+    public virtual DbSet<UploadFile> UploadedFiles { get; set; }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

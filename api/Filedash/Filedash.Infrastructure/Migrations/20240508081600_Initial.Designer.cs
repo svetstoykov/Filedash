@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Filedash.Infrastructure.Migrations
 {
     [DbContext(typeof(FiledashDbContext))]
-    [Migration("20240508081428_Initial")]
+    [Migration("20240508081600_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -50,7 +50,7 @@ namespace Filedash.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Files");
+                    b.ToTable("UploadedFiles");
                 });
 #pragma warning restore 612, 618
         }

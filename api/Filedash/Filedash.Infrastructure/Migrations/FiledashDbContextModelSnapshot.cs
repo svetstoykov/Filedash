@@ -47,7 +47,7 @@ namespace Filedash.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Files");
+                    b.ToTable("UploadedFiles");
                 });
 #pragma warning restore 612, 618
         }
