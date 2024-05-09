@@ -15,7 +15,7 @@ public class UploadedFilesManagementService : IUploadedFilesManagementService
         _uploadedFilesRepository = uploadedFilesRepository;
     }
 
-    public async Task<Result> UploadEncodedStringAsync(
+    public async Task<DataResult<UploadedFileDetails>> UploadEncodedStringAsync(
         string content,
         string fileName,
         Encoding encoding,
@@ -24,7 +24,7 @@ public class UploadedFilesManagementService : IUploadedFilesManagementService
         throw new NotImplementedException();
     }
 
-    public async Task<Result> UploadFileStreamAsync(
+    public async Task<DataResult<UploadedFileDetails>> UploadFileStreamAsync(
         Stream fileStream,
         long? fileLength,
         string fileNameWithExtension,
@@ -37,7 +37,7 @@ public class UploadedFilesManagementService : IUploadedFilesManagementService
 
         if (!validationResult.IsSuccessful)
         {
-            return validationResult;
+            return DataResult<UploadedFileDetails>.Failure();
         }
 
         var fileExists = await _uploadedFilesRepository
@@ -45,16 +45,24 @@ public class UploadedFilesManagementService : IUploadedFilesManagementService
 
         if (fileExists)
         {
-            return Result.Failure($"A file with name '{fileName}' and extension '{extension}' already exists!");
+            return DataResult<UploadedFileDetails>
+                .Failure($"A file with name '{fileName}' and extension '{extension}' already exists!");
         }
 
         var uploadedFile = CreateUploadedFile(
             fileName, extension, fileLength!.Value);
 
-        await _uploadedFilesRepository
+        var createdId = await _uploadedFilesRepository
             .StreamUploadedFileAsync(uploadedFile, fileStream, cancellationToken: cancellationToken);
 
-        return Result.Success();
+        return DataResult<UploadedFileDetails>.Success(
+            new UploadedFileDetails
+        {
+            Id = createdId,
+            ContentLength = uploadedFile.ContentLength,
+            CreatedDateUtc = uploadedFile.CreatedDateUtc,
+            FullFileName = fileNameWithExtension
+        });
     }
 
     public async Task<DataResult<IImmutableList<UploadedFileDetails>>> ListAllFilesAsync(
@@ -81,22 +89,26 @@ public class UploadedFilesManagementService : IUploadedFilesManagementService
     {
         if (fileStream == null)
         {
-            return Result.Failure("File stream cannot be null or empty.");
+            return Result
+                .Failure("File stream cannot be null or empty.");
         }
 
         if (string.IsNullOrWhiteSpace(fileName))
         {
-            return Result.Failure("File name cannot be null or empty.");
+            return Result
+                .Failure("File name cannot be null or empty.");
         }
 
         if (string.IsNullOrEmpty(extension))
         {
-            return Result.Failure("File does not have valid file extension.");
+            return Result
+                .Failure("File does not have valid file extension.");
         }
 
         if (fileLength is not > (long) default)
         {
-            return Result.Failure("Invalid file content length!");
+            return Result
+                .Failure("Invalid file content length!");
         }
 
         return Result.Success();

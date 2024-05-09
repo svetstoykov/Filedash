@@ -5,7 +5,7 @@ namespace Filedash.Domain.Interfaces;
 
 public interface IUploadedFilesRepository
 {
-    Task<bool> StreamUploadedFileAsync(
+    Task<Guid> StreamUploadedFileAsync(
         UploadedFile file,
         Stream fileContentStream,
         CancellationToken cancellationToken = default);

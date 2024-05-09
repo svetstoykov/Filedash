@@ -17,14 +17,16 @@ public class UploadedFilesRepository : IUploadedFilesRepository
         _context = context;
     }
 
-    public async Task<bool> StreamUploadedFileAsync(
+    public async Task<Guid> StreamUploadedFileAsync(
         UploadedFile file,
         Stream fileContentStream,
         CancellationToken cancellationToken = default)
     {
+        var id = Guid.NewGuid();
+        
         var parameters = new List<SqlParameter>
         {
-            new("@id", SqlDbType.UniqueIdentifier) {Value = Guid.NewGuid()},
+            new("@id", SqlDbType.UniqueIdentifier) {Value = id},
             new("@name", SqlDbType.NVarChar) {Value = file.Name},
             new("@extension", SqlDbType.NVarChar) {Value = file.Extension},
             new("@content", SqlDbType.Binary, -1) {Value = fileContentStream},
@@ -33,12 +35,12 @@ public class UploadedFilesRepository : IUploadedFilesRepository
         };
 
         var result = await _context.Database.ExecuteSqlRawAsync(
-            "INSERT INTO [dbo].[UploadedFiles] ([Id], [Name], [Extension], [Content], [ContentLength], [CreatedDate]) " +
+            "INSERT INTO [dbo].[UploadedFiles] ([Id], [Name], [Extension], [Content], [ContentLength], [CreatedDateUtc]) " +
             "VALUES (@id, @name, @extension, @content, @contentLength, @createdDate);",
             parameters,
             cancellationToken: cancellationToken);
 
-        return result > 0;
+        return id;
     }
 
     public async Task<bool> DoesFileNameWithExtensionExistAsync(
@@ -46,8 +48,8 @@ public class UploadedFilesRepository : IUploadedFilesRepository
         string extension,
         CancellationToken cancellationToken = default)
         => await _context.UploadedFiles.AnyAsync(f =>
-                f.Name.Equals(fileName, StringComparison.InvariantCultureIgnoreCase)
-                && f.Extension.Equals(extension, StringComparison.InvariantCultureIgnoreCase),
+                f.Name.ToLower().Equals(fileName.ToLower())
+                && f.Extension.ToLower().Equals(extension.ToLower()),
             cancellationToken: cancellationToken);
 
     public async Task<bool> DeleteFileAsync(Guid id, CancellationToken cancellationToken = default)
@@ -62,7 +64,8 @@ public class UploadedFilesRepository : IUploadedFilesRepository
                 {
                     Id = f.Id,
                     ContentLength = f.ContentLength,
-                    FullFileName = $"{f.Name}{f.Extension}"
+                    FullFileName = $"{f.Name}{f.Extension}",
+                    CreatedDateUtc = f.CreatedDateUtc
                 }
             )
             .ToListAsync(cancellationToken);

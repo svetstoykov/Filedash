@@ -1,10 +1,7 @@
-﻿using Filedash.Web.Attributes;
-using Filedash.Web.Helpers;
+﻿using Filedash.Domain.Interfaces;
+using Filedash.Web.Attributes;
 using Filedash.Web.Interfaces;
-using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Net.Http.Headers;
 
 namespace Filedash.Web.Controllers;
 
@@ -13,10 +10,14 @@ namespace Filedash.Web.Controllers;
 public class FilesController : ControllerBase
 {
     private readonly IMultipartFileUploadProcessor _multipartFileUploadProcessor;
+    private readonly IUploadedFilesManagementService _uploadedFilesManagementService;
 
-    public FilesController(IMultipartFileUploadProcessor multipartFileUploadProcessor)
+    public FilesController(
+        IMultipartFileUploadProcessor multipartFileUploadProcessor,
+        IUploadedFilesManagementService uploadedFilesManagementService)
     {
         _multipartFileUploadProcessor = multipartFileUploadProcessor;
+        _uploadedFilesManagementService = uploadedFilesManagementService;
     }
 
     [RequestFormLimits(ValueLengthLimit = int.MaxValue, MultipartBodyLengthLimit = int.MaxValue)]
@@ -25,9 +26,30 @@ public class FilesController : ControllerBase
     [HttpPost("upload")]
     public async Task<IActionResult> UploadFile(CancellationToken cancellationToken)
     {
-        await _multipartFileUploadProcessor
-            .ProcessMultipartFileUploadAsync(Request, cancellationToken);
-        
-        return Ok("File uploaded successfully");
+        var results = await _multipartFileUploadProcessor
+            .ProcessMultipartFileUploadsAsync(Request, cancellationToken);
+
+        return results.All(r => !r.IsSuccessful)
+            ? BadRequest("Failed to upload all files!")
+            : Ok(results);
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteFile([FromRoute] Guid id, CancellationToken cancellationToken)
+    {
+        var uploadResult = await _uploadedFilesManagementService
+            .DeleteFileAsync(id, cancellationToken);
+
+        return uploadResult.IsSuccessful ? Ok() : BadRequest();
+    }
+
+    [HttpGet]
+    [Route("list")]
+    public async Task<IActionResult> ListAllUploadedFiles(CancellationToken cancellationToken)
+    {
+        var uploadedFileDetails = await _uploadedFilesManagementService
+            .ListAllFilesAsync(cancellationToken);
+
+        return uploadedFileDetails.IsSuccessful ? Ok(uploadedFileDetails) : BadRequest(uploadedFileDetails);
     }
 }

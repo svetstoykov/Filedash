@@ -1,5 +1,8 @@
-﻿using System.Text;
+﻿using System.Collections.Immutable;
+using System.Text;
+using Filedash.Domain.Common;
 using Filedash.Domain.Interfaces;
+using Filedash.Domain.Models;
 using Filedash.Web.Helpers;
 using Filedash.Web.Interfaces;
 using Microsoft.AspNetCore.Http.Features;
@@ -19,7 +22,7 @@ public class MultipartFileUploadProcessor : IMultipartFileUploadProcessor
         _defaultFormOptions = new FormOptions();
     }
 
-    public async Task ProcessMultipartFileUploadAsync(
+    public async Task<IImmutableList<DataResult<UploadedFileDetails>>> ProcessMultipartFileUploadsAsync(
         HttpRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -44,6 +47,9 @@ public class MultipartFileUploadProcessor : IMultipartFileUploadProcessor
         {
             section = null;
         }
+
+
+        var resultSet = new List<DataResult<UploadedFileDetails>>();
         
         while (section != null)
         {
@@ -64,11 +70,13 @@ public class MultipartFileUploadProcessor : IMultipartFileUploadProcessor
                     throw new InvalidOperationException();
                 }
 
-                await _uploadedFilesManagementService.UploadFileStreamAsync(
+                var result = await _uploadedFilesManagementService.UploadFileStreamAsync(
                     fileSection.FileStream,
                     request.ContentLength,
                     fileSection.FileName,
                     cancellationToken);
+
+                resultSet.Add(result);
             }
             else if (contentDispositionHeader.IsFormDisposition())
             {
@@ -84,8 +92,10 @@ public class MultipartFileUploadProcessor : IMultipartFileUploadProcessor
 
                 var value = await streamReader.ReadToEndAsync(cancellationToken);
 
-                await _uploadedFilesManagementService.UploadEncodedStringAsync(
+                var result = await _uploadedFilesManagementService.UploadEncodedStringAsync(
                     value, key.Value, encoding, cancellationToken);
+
+                resultSet.Add(result);
             }
 
             try
@@ -97,6 +107,8 @@ public class MultipartFileUploadProcessor : IMultipartFileUploadProcessor
                 section = null;
             }
         }
+
+        return resultSet.ToImmutableList();
     }
 
     private static Encoding GetEncoding(MultipartSection section)

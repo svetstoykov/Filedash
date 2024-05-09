@@ -7,4 +7,6 @@ public class UploadedFileDetails
     public string FullFileName { get; set; }
     
     public long ContentLength { get; set; }
+    
+    public DateTime CreatedDateUtc { get; set; }
 }

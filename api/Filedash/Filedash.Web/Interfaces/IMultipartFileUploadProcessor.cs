@@ -1,6 +1,10 @@
-﻿namespace Filedash.Web.Interfaces;
+﻿using System.Collections.Immutable;
+using Filedash.Domain.Common;
+using Filedash.Domain.Models;
+
+namespace Filedash.Web.Interfaces;
 
 public interface IMultipartFileUploadProcessor
 {
-    Task ProcessMultipartFileUploadAsync(HttpRequest request, CancellationToken cancellationToken = default);
+    Task<IImmutableList<DataResult<UploadedFileDetails>>> ProcessMultipartFileUploadsAsync(HttpRequest request, CancellationToken cancellationToken = default);
 }
