@@ -22,7 +22,7 @@ public class MultipartFileUploadProcessor : IMultipartFileUploadProcessor
         _defaultFormOptions = new FormOptions();
     }
 
-    public async Task<IImmutableList<DataResult<UploadedFileDetails>>> ProcessMultipartFileUploadsAsync(
+    public async Task<IImmutableList<Result<UploadedFileDetails>>> ProcessMultipartFileUploadsAsync(
         HttpRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -48,8 +48,7 @@ public class MultipartFileUploadProcessor : IMultipartFileUploadProcessor
             section = null;
         }
 
-
-        var resultSet = new List<DataResult<UploadedFileDetails>>();
+        var resultSet = new List<Result<UploadedFileDetails>>();
         
         while (section != null)
         {
@@ -67,7 +66,10 @@ public class MultipartFileUploadProcessor : IMultipartFileUploadProcessor
 
                 if (fileSection?.FileStream == null)
                 {
-                    throw new InvalidOperationException();
+                    resultSet.Add(Result<UploadedFileDetails>
+                        .Failure("File section and/or file stream  is null or empty!"));
+
+                    continue;
                 }
 
                 var result = await _uploadedFilesManagementService.UploadFileStreamAsync(

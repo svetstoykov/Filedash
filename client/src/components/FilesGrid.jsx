@@ -17,21 +17,27 @@ function FileList({ files, onDelete }) {
 
     const dateBodyTemplate = (rowData) => {
         const date = new Date(rowData.createdDateUtc);
-        
+
         return date.toLocaleDateString("en-US", {
             day: "2-digit",
             month: "2-digit",
             year: "numeric",
             hour: "2-digit",
-            minute: "2-digit"
+            minute: "2-digit",
         });
+    };
+
+    const sizeBodyTemplate = (rowData) => {
+        const sizeInMbs = rowData.contentLength / (1024 * 1024);
+
+        return `${sizeInMbs.toFixed(2)} MBs`;
     };
 
     return (
         <div className="grid">
             <DataTable value={files[0]} tableStyle={{ minWidth: "60rem" }}>
                 <Column field="fullFileName" header="Name"></Column>
-                <Column field="contentLength" header="Size"></Column>
+                <Column field="contentLength" header="Size" body={sizeBodyTemplate}></Column>
                 <Column
                     field="createdDateUtc"
                     header="Date"

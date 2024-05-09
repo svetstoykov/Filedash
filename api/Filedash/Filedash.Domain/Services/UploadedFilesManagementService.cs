@@ -15,7 +15,7 @@ public class UploadedFilesManagementService : IUploadedFilesManagementService
         _uploadedFilesRepository = uploadedFilesRepository;
     }
 
-    public async Task<DataResult<UploadedFileDetails>> UploadEncodedStringAsync(
+    public async Task<Result<UploadedFileDetails>> UploadEncodedStringAsync(
         string content,
         string fileName,
         Encoding encoding,
@@ -24,7 +24,7 @@ public class UploadedFilesManagementService : IUploadedFilesManagementService
         throw new NotImplementedException();
     }
 
-    public async Task<DataResult<UploadedFileDetails>> UploadFileStreamAsync(
+    public async Task<Result<UploadedFileDetails>> UploadFileStreamAsync(
         Stream fileStream,
         long? fileLength,
         string fileNameWithExtension,
@@ -37,7 +37,7 @@ public class UploadedFilesManagementService : IUploadedFilesManagementService
 
         if (!validationResult.IsSuccessful)
         {
-            return DataResult<UploadedFileDetails>.Failure();
+            return Result<UploadedFileDetails>.Failure();
         }
 
         var fileExists = await _uploadedFilesRepository
@@ -45,7 +45,7 @@ public class UploadedFilesManagementService : IUploadedFilesManagementService
 
         if (fileExists)
         {
-            return DataResult<UploadedFileDetails>
+            return Result<UploadedFileDetails>
                 .Failure($"A file with name '{fileName}' and extension '{extension}' already exists!");
         }
 
@@ -55,7 +55,7 @@ public class UploadedFilesManagementService : IUploadedFilesManagementService
         var createdId = await _uploadedFilesRepository
             .StreamUploadedFileAsync(uploadedFile, fileStream, cancellationToken: cancellationToken);
 
-        return DataResult<UploadedFileDetails>.Success(
+        return Result<UploadedFileDetails>.Success(
             new UploadedFileDetails
         {
             Id = createdId,
@@ -65,7 +65,7 @@ public class UploadedFilesManagementService : IUploadedFilesManagementService
         });
     }
 
-    public async Task<DataResult<IImmutableList<UploadedFileDetails>>> ListAllFilesAsync(
+    public async Task<Result<IImmutableList<UploadedFileDetails>>> ListAllFilesAsync(
         CancellationToken cancellationToken = default)
     {
         var allFilesList = await _uploadedFilesRepository
@@ -75,7 +75,7 @@ public class UploadedFilesManagementService : IUploadedFilesManagementService
             .OrderByDescending(f => f.CreatedDateUtc)
             .ToImmutableList();
 
-        return DataResult<IImmutableList<UploadedFileDetails>>
+        return Result<IImmutableList<UploadedFileDetails>>
             .Success(sortedFiles);
     }
 
