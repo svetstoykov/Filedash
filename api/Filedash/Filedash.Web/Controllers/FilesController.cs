@@ -1,5 +1,10 @@
-﻿using Filedash.Web.Interfaces;
+﻿using Filedash.Web.Attributes;
+using Filedash.Web.Helpers;
+using Filedash.Web.Interfaces;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Net.Http.Headers;
 
 namespace Filedash.Web.Controllers;
 
@@ -16,7 +21,7 @@ public class FilesController : ControllerBase
 
     [RequestFormLimits(ValueLengthLimit = int.MaxValue, MultipartBodyLengthLimit = int.MaxValue)]
     [DisableRequestSizeLimit]
-    [Consumes("multipart/form-data")]
+    [DisableFormValueModelBinding]
     [HttpPost("upload")]
     public async Task<IActionResult> UploadFile(CancellationToken cancellationToken)
     {

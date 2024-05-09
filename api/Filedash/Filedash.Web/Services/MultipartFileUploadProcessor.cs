@@ -1,5 +1,5 @@
-﻿using Filedash.Domain.Interfaces;
-using Filedash.Web.Extensions;
+﻿using System.Text;
+using Filedash.Domain.Interfaces;
 using Filedash.Web.Helpers;
 using Filedash.Web.Interfaces;
 using Microsoft.AspNetCore.Http.Features;
@@ -11,15 +11,16 @@ namespace Filedash.Web.Services;
 public class MultipartFileUploadProcessor : IMultipartFileUploadProcessor
 {
     private readonly FormOptions _defaultFormOptions;
-    private readonly IFileManagementService _fileManagementService;
+    private readonly IUploadedFilesManagementService _uploadedFilesManagementService;
 
-    public MultipartFileUploadProcessor(IFileManagementService fileManagementService)
+    public MultipartFileUploadProcessor(IUploadedFilesManagementService uploadedFilesManagementService)
     {
-        _fileManagementService = fileManagementService;
+        _uploadedFilesManagementService = uploadedFilesManagementService;
         _defaultFormOptions = new FormOptions();
     }
 
-    public async Task ProcessMultipartFileUploadAsync(HttpRequest request,
+    public async Task ProcessMultipartFileUploadAsync(
+        HttpRequest request,
         CancellationToken cancellationToken = default)
     {
         if (!MultipartRequestHelper.IsMultipartContentType(request.ContentType))
@@ -34,8 +35,16 @@ public class MultipartFileUploadProcessor : IMultipartFileUploadProcessor
 
         var reader = new MultipartReader(boundary, request.Body);
 
-        var section = await TryReadNextSectionAsync(reader, cancellationToken);
-
+        MultipartSection section;
+        try
+        {
+            section = await reader.ReadNextSectionAsync(cancellationToken);
+        }
+        catch (IOException)
+        {
+            section = null;
+        }
+        
         while (section != null)
         {
             var hasContentDispositionHeader = ContentDispositionHeaderValue
@@ -55,7 +64,7 @@ public class MultipartFileUploadProcessor : IMultipartFileUploadProcessor
                     throw new InvalidOperationException();
                 }
 
-                await _fileManagementService.UploadFileStreamAsync(
+                await _uploadedFilesManagementService.UploadFileStreamAsync(
                     fileSection.FileStream,
                     request.ContentLength,
                     fileSection.FileName,
@@ -64,42 +73,43 @@ public class MultipartFileUploadProcessor : IMultipartFileUploadProcessor
             else if (contentDispositionHeader.IsFormDisposition())
             {
                 var key = HeaderUtilities.RemoveQuotes(contentDispositionHeader.Name);
-                var encoding = section.GetEncoding();
+                var encoding = GetEncoding(section);
                 if (encoding == null)
                 {
                     throw new NullReferenceException("Null encoding");
                 }
 
                 using var streamReader = new StreamReader(
-                    section.Body,
-                    encoding,
-                    detectEncodingFromByteOrderMarks: true,
-                    bufferSize: 1024,
-                    leaveOpen: true);
+                    section.Body, encoding);
 
                 var value = await streamReader.ReadToEndAsync(cancellationToken);
 
-                await _fileManagementService.UploadEncodedStringAsync(
+                await _uploadedFilesManagementService.UploadEncodedStringAsync(
                     value, key.Value, encoding, cancellationToken);
             }
 
-            section = await TryReadNextSectionAsync(reader, cancellationToken);
+            try
+            {
+                section = await reader.ReadNextSectionAsync(cancellationToken);
+            }
+            catch (IOException)
+            {
+                section = null;
+            }
         }
     }
 
-    private static async Task<MultipartSection> TryReadNextSectionAsync(MultipartReader reader, CancellationToken cancellationToken)
+    private static Encoding GetEncoding(MultipartSection section)
     {
-        MultipartSection section;
-        
-        try
+        var hasMediaTypeHeader = MediaTypeHeaderValue
+            .TryParse(section.ContentType, out var mediaType);
+
+        // UTF-7 is insecure and should not be honored. UTF-8 will succeed in most cases.
+        if (!hasMediaTypeHeader || Encoding.UTF7.Equals(mediaType.Encoding))
         {
-            section = await reader.ReadNextSectionAsync(cancellationToken);
-        }
-        catch (IOException)
-        {
-            section = null;
+            return Encoding.UTF8;
         }
 
-        return section;
+        return mediaType.Encoding;
     }
 }

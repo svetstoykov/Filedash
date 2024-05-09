@@ -9,6 +9,8 @@ public class UploadedFile
     public string Extension { get; set; }
 
     public byte[] Content { get; set; }
+    
+    public long ContentLength { get; set; }
 
-    public DateTime CreatedDate { get; set; }
+    public DateTime CreatedDateUtc { get; set; }
 }

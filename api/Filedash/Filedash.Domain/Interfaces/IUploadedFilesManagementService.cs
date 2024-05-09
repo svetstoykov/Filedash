@@ -5,23 +5,24 @@ using Filedash.Domain.Models;
 
 namespace Filedash.Domain.Interfaces;
 
-public interface IFileManagementService
+public interface IUploadedFilesManagementService
 {
     Task<Result> UploadEncodedStringAsync(
         string content,
         string fileName,
         Encoding encoding,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken = default);
     
     Task<Result> UploadFileStreamAsync(
         Stream fileStream,
         long? fileLength,
-        string fullFileName,
+        string fileNameWithExtension,
         CancellationToken cancellationToken = default);
 
-    Task<DataResult<ImmutableList<UploadedFile>>> ListAllFilesAsync(
+    Task<DataResult<IImmutableList<UploadedFileDetails>>> ListAllFilesAsync(
         CancellationToken cancellationToken = default);
 
     Task<Result> DeleteFileAsync(
-        string id, CancellationToken cancellationToken = default);
+        Guid id, 
+        CancellationToken cancellationToken = default);
 }

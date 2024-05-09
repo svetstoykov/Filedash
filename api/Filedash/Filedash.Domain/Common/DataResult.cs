@@ -1,33 +1,22 @@
 ﻿namespace Filedash.Domain.Common;
 
-public class DataResult<T>
+public class DataResult<T> : Result
 {
-    internal DataResult(T data, bool isSuccessful = false, string message = null)
+    private DataResult(T data, bool isSuccessful = false, string message = null) : base(isSuccessful, message)
     {
         Data = data;
-        Result = new Result(isSuccessful, message);
     }
 
-    internal DataResult(T data, Result result)
-    {
-        Data = data;
-        Result = result;
-    }
-    
     public T Data { get; init; }
-    
-    public Result Result { get; init; }
     
     public static DataResult<T> Success(T data, string message = null) => new(data, true, message);
 
     public static DataResult<T> Failure(string message = null) => new(default, false, message);
-
-    public static DataResult<T> New(T data, Result result) => new(data, result);
 }
 
 public class Result
 {
-    public Result(bool isSuccessful, string message = null)
+    protected Result(bool isSuccessful, string message = null)
     {
         IsSuccessful = isSuccessful;
         Message = message;
