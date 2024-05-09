@@ -35,7 +35,7 @@ function FileList({ files, onDelete }) {
 
     return (
         <div className="grid">
-            <DataTable value={files[0]} tableStyle={{ minWidth: "60rem" }}>
+            <DataTable value={files[0]} tableStyle={{ minWidth: "60rem", maxWidth: "60rem" }}>
                 <Column field="fullFileName" header="Name"></Column>
                 <Column field="contentLength" header="Size" body={sizeBodyTemplate}></Column>
                 <Column

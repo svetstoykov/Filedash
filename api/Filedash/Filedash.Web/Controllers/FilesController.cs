@@ -21,8 +21,6 @@ public class FilesController : ControllerBase
         _uploadedFilesManagementService = uploadedFilesManagementService;
     }
 
-    [RequestFormLimits(ValueLengthLimit = int.MaxValue, MultipartBodyLengthLimit = int.MaxValue)]
-    [DisableRequestSizeLimit]
     [DisableFormValueModelBinding]
     [HttpPost("upload")]
     public async Task<IActionResult> UploadFile(CancellationToken cancellationToken)
@@ -53,7 +51,7 @@ public class FilesController : ControllerBase
 
         return ProcessActionResult(uploadedFileDetails);
     }
-    
+
     private IActionResult ProcessActionResult(Result result)
         => result.IsSuccessful
             ? Ok(result)

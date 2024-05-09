@@ -17,3 +17,8 @@ body {
 h1 {
     padding-bottom: 1rem;
 }
+
+.uploader {
+    display: flex;
+    flex-direction: column;
+}

@@ -1,10 +1,23 @@
-﻿namespace Filedash.Web.IoC;
+﻿using Microsoft.AspNetCore.Http.Features;
+
+namespace Filedash.Web.IoC;
 
 public static class WebServiceExtensions
 {
     public static IServiceCollection AddWebServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddControllers();
+
+        services.Configure<FormOptions>(options =>
+        {
+            options.ValueLengthLimit = configuration
+                .GetSection(nameof(options.ValueLengthLimit))
+                .Get<int>();
+
+            options.MultipartBodyLengthLimit = configuration
+                .GetSection(nameof(options.MultipartBodyLengthLimit))
+                .Get<int>();
+        });
 
         services.Scan(selector => selector
             .FromCallingAssembly()

@@ -16,7 +16,6 @@
     "primereact": "^10.6.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-simple-file-upload": "^1.1.0",
     "react-toastify": "^10.0.5"
   },
   "devDependencies": {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
 import FileUploader from "./components/FileUploader";
 import FilesGrid from "./components/FilesGrid";
+import agent from "./api/agent";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./index.css";
@@ -12,56 +12,43 @@ import "primeicons/primeicons.css";
 function App() {
     const [files, setFiles] = useState([]);
 
-    // Fetch files on initial render
     useEffect(() => {
         fetchFiles();
     }, []);
 
-    // Function to fetch files
     const fetchFiles = async () => {
         try {
-            const response = await axios.get("https://localhost:44338/api/files/list");
-            setFiles(() => [response.data.data]);
+            const filesList = await agent.listFiles();
+
+            setFiles(() => [filesList]);
         } catch (error) {
-            console.error("Error fetching files:", error);
+            toast.error(error.response.data.message);
         }
     };
 
-    // Function to handle file upload
     const handleUpload = async (files) => {
         try {
-            const formData = new FormData();
-
-            files.forEach((file) => {
-                formData.append("file", file);
-            });
-
-            await axios.post("https://localhost:44338/api/files/upload", formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
+            await agent.uploadFiles(files);
 
             toast.success("File uploaded successfully!");
 
             fetchFiles();
         } catch (error) {
             error.response.data.forEach((d) => {
-                toast.error(`Error uploading file: ${d.message}`);
+                toast.error(d.message);
             });
         }
     };
 
-    // Function to handle file deletion
     const handleDelete = async (id) => {
         try {
-            await axios.delete(`https://localhost:44338/api/files/${id}11111`);
+            await agent.deleteFile(id);
 
             toast.success("File deleted successfully!");
 
             fetchFiles();
         } catch (error) {
-            toast.error(`Error deleting file: ${error}`);
+            toast.error(error.response.data.message);
         }
     };
 
