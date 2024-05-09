@@ -12,7 +12,21 @@ public static class WebServiceExtensions
             .AsMatchingInterface());
 
         return services
+            .AddCorsPolicy()
             .AddEndpointsApiExplorer()
             .AddSwaggerGen();
     }
+
+    private static IServiceCollection AddCorsPolicy(this IServiceCollection services)
+        => services.AddCors(options =>
+        {
+            options.AddPolicy("CorsPolicy", policy =>
+            {
+                policy
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowCredentials()
+                    .WithOrigins("http://localhost:5173");
+            });
+        });
 }

@@ -1,4 +1,5 @@
-﻿using Filedash.Domain.Interfaces;
+﻿using Filedash.Domain.Common;
+using Filedash.Domain.Interfaces;
 using Filedash.Web.Attributes;
 using Filedash.Web.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -30,7 +31,7 @@ public class FilesController : ControllerBase
             .ProcessMultipartFileUploadsAsync(Request, cancellationToken);
 
         return results.All(r => !r.IsSuccessful)
-            ? BadRequest("Failed to upload all files!")
+            ? BadRequest(results)
             : Ok(results);
     }
 
@@ -40,7 +41,7 @@ public class FilesController : ControllerBase
         var uploadResult = await _uploadedFilesManagementService
             .DeleteFileAsync(id, cancellationToken);
 
-        return uploadResult.IsSuccessful ? Ok() : BadRequest();
+        return ProcessActionResult(uploadResult);
     }
 
     [HttpGet]
@@ -50,6 +51,11 @@ public class FilesController : ControllerBase
         var uploadedFileDetails = await _uploadedFilesManagementService
             .ListAllFilesAsync(cancellationToken);
 
-        return uploadedFileDetails.IsSuccessful ? Ok(uploadedFileDetails) : BadRequest(uploadedFileDetails);
+        return ProcessActionResult(uploadedFileDetails);
     }
+    
+    private IActionResult ProcessActionResult(Result result)
+        => result.IsSuccessful
+            ? Ok(result)
+            : BadRequest(result);
 }

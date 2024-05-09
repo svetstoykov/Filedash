@@ -1,6 +1,7 @@
 using Filedash.Domain.IoC;
 using Filedash.Infrastructure.IoC;
 using Filedash.Web.IoC;
+using Filedash.Web.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
@@ -19,8 +20,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors("CorsPolicy");
 app.UseHttpsRedirection();
 app.UseRouting();
-app.UseEndpoints(e => e.MapControllers());
+app.UseEndpoints(e =>
+{
+    e.MapControllers();
+});
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.Run();

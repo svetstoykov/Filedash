@@ -71,8 +71,12 @@ public class UploadedFilesManagementService : IUploadedFilesManagementService
         var allFilesList = await _uploadedFilesRepository
             .ListAllUploadedFiles(cancellationToken);
 
+        var sortedFiles = allFilesList
+            .OrderByDescending(f => f.CreatedDateUtc)
+            .ToImmutableList();
+
         return DataResult<IImmutableList<UploadedFileDetails>>
-            .Success(allFilesList.ToImmutableList());
+            .Success(sortedFiles);
     }
 
     public async Task<Result> DeleteFileAsync(Guid id, CancellationToken cancellationToken = default)

@@ -1,0 +1,19 @@
+body {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: sans-serif;
+}
+
+.grid{
+    padding-top: 2rem;
+}
+
+.grid > * {
+    color: black;
+}
+
+h1 {
+    padding-bottom: 1rem;
+}

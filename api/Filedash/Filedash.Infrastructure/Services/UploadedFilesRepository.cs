@@ -65,7 +65,7 @@ public class UploadedFilesRepository : IUploadedFilesRepository
                     Id = f.Id,
                     ContentLength = f.ContentLength,
                     FullFileName = $"{f.Name}{f.Extension}",
-                    CreatedDateUtc = f.CreatedDateUtc
+                    CreatedDateUtc = DateTime.SpecifyKind(f.CreatedDateUtc, DateTimeKind.Utc)
                 }
             )
             .ToListAsync(cancellationToken);
