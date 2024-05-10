@@ -45,6 +45,9 @@
       <None Update="Content\file_example_MP4_1920_18MG.mp4">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="Content\file-example_TXT_0Kb.txt">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
 </Project>

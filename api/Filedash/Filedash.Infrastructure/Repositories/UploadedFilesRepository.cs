@@ -1,12 +1,11 @@
-﻿using System.Collections.Immutable;
-using System.Data;
+﻿using System.Data;
 using Filedash.Domain.Interfaces;
 using Filedash.Domain.Models;
 using Filedash.Infrastructure.DbContext;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
-namespace Filedash.Infrastructure.Services;
+namespace Filedash.Infrastructure.Repositories;
 
 public class UploadedFilesRepository : IUploadedFilesRepository
 {
@@ -30,13 +29,12 @@ public class UploadedFilesRepository : IUploadedFilesRepository
             new("@name", SqlDbType.NVarChar) {Value = file.Name},
             new("@extension", SqlDbType.NVarChar) {Value = file.Extension},
             new("@content", SqlDbType.Binary, -1) {Value = fileContentStream},
-            new("@contentLength", SqlDbType.BigInt) {Value = file.ContentLength},
             new("@createdDate", SqlDbType.DateTime2) {Value = file.CreatedDateUtc}
         };
 
-        var result = await _context.Database.ExecuteSqlRawAsync(
-            "INSERT INTO [dbo].[UploadedFiles] ([Id], [Name], [Extension], [Content], [ContentLength], [CreatedDateUtc]) " +
-            "VALUES (@id, @name, @extension, @content, @contentLength, @createdDate);",
+        await _context.Database.ExecuteSqlRawAsync(
+            "INSERT INTO [dbo].[UploadedFiles] ([Id], [Name], [Extension], [Content], [CreatedDateUtc]) " +
+            "VALUES (@id, @name, @extension, @content, @createdDate);",
             parameters,
             cancellationToken: cancellationToken);
 

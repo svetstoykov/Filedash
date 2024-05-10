@@ -27,6 +27,10 @@ public partial class FiledashDbContext : Microsoft.EntityFrameworkCore.DbContext
             entity
                 .Property(e => e.Content)
                 .IsRequired();
+
+            entity
+                .Property(e => e.ContentLength)
+                .HasComputedColumnSql("DATALENGTH([Content])", stored: true);
         });
     }
 }

@@ -4,6 +4,7 @@ using Filedash.Infrastructure.DbContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Filedash.Infrastructure.Migrations
 {
     [DbContext(typeof(FiledashDbContext))]
-    partial class FiledashDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240510122908_ComputedColumnToContentLength")]
+    partial class ComputedColumnToContentLength
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

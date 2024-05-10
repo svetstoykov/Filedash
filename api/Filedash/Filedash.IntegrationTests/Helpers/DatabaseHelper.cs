@@ -13,7 +13,7 @@ public static class DatabaseHelper
         await testDb.SaveChangesAsync();
     }
 
-    public static async Task CleanupDbAsync(FiledashDbContext db)
+    public static async Task CleanDbAsync(FiledashDbContext db)
     {
         db.UploadedFiles.RemoveRange(db.UploadedFiles);
 

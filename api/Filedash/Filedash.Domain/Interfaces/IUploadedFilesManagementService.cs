@@ -15,7 +15,6 @@ public interface IUploadedFilesManagementService
     
     Task<Result<UploadedFileDetails>> UploadFileStreamAsync(
         Stream fileStream,
-        long? fileLength,
         string fileNameWithExtension,
         CancellationToken cancellationToken = default);
 

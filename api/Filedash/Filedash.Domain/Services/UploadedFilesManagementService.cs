@@ -26,14 +26,13 @@ public class UploadedFilesManagementService : IUploadedFilesManagementService
 
     public async Task<Result<UploadedFileDetails>> UploadFileStreamAsync(
         Stream fileStream,
-        long? fileLength,
         string fileNameWithExtension,
         CancellationToken cancellationToken = default)
     {
         var (fileName, extension) = ExtractFileInfo(fileNameWithExtension);
 
         var validationResult = ValidateUploadInput(
-            fileStream, fileName, extension, fileLength);
+            fileStream, fileName, extension);
 
         if (!validationResult.IsSuccessful)
         {
@@ -49,8 +48,7 @@ public class UploadedFilesManagementService : IUploadedFilesManagementService
                 .Failure($"A file with name '{fileName}' and extension '{extension}' already exists!");
         }
 
-        var uploadedFile = CreateUploadedFile(
-            fileName, extension, fileLength!.Value);
+        var uploadedFile = CreateUploadedFile(fileName, extension);
 
         var createdId = await _uploadedFilesRepository
             .StreamUploadedFileAsync(uploadedFile, fileStream, cancellationToken: cancellationToken);
@@ -89,7 +87,7 @@ public class UploadedFilesManagementService : IUploadedFilesManagementService
             : Result.Failure("Delete operation failed!");
     }
 
-    private static Result ValidateUploadInput(Stream fileStream, string fileName, string extension, long? fileLength)
+    private static Result ValidateUploadInput(Stream fileStream, string fileName, string extension)
     {
         if (fileStream == null)
         {
@@ -109,12 +107,6 @@ public class UploadedFilesManagementService : IUploadedFilesManagementService
                 .Failure("File does not have valid file extension.");
         }
 
-        if (fileLength is not > (long) default)
-        {
-            return Result
-                .Failure("Invalid file content length!");
-        }
-
         return Result.Success();
     }
 
@@ -127,12 +119,12 @@ public class UploadedFilesManagementService : IUploadedFilesManagementService
         return (name, extension);
     }
 
-    private static UploadedFile CreateUploadedFile(string name, string extension, long contentLength)
+    private static UploadedFile CreateUploadedFile(string name, string extension)
         => new()
         {
             Name = name,
             Extension = extension,
-            ContentLength = contentLength,
+            ContentLength = default,
             CreatedDateUtc = DateTime.UtcNow
         };
 }

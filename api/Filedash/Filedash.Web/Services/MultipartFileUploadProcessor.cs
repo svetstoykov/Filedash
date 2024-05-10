@@ -6,7 +6,6 @@ using Filedash.Domain.Models;
 using Filedash.Web.Helpers;
 using Filedash.Web.Interfaces;
 using Microsoft.AspNetCore.Http.Features;
-using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Net.Http.Headers;
 
@@ -31,7 +30,6 @@ public class MultipartFileUploadProcessor : IMultipartFileUploadProcessor
         {
             throw new Exception($"Expected a multipart request, but got {request.ContentType}");
         }
-        
 
         var boundary = MultipartRequestHelper
             .GetBoundary(
@@ -40,18 +38,10 @@ public class MultipartFileUploadProcessor : IMultipartFileUploadProcessor
 
         var reader = new MultipartReader(boundary, request.Body);
 
-        MultipartSection section;
-        try
-        {
-            section = await reader.ReadNextSectionAsync(cancellationToken);
-        }
-        catch (IOException)
-        {
-            section = null;
-        }
+        var section = await TryReadNextSectionAsync(cancellationToken, reader);
 
         var resultSet = new List<Result<UploadedFileDetails>>();
-        
+
         while (section != null)
         {
             var hasContentDispositionHeader = ContentDispositionHeaderValue
@@ -59,6 +49,8 @@ public class MultipartFileUploadProcessor : IMultipartFileUploadProcessor
 
             if (!hasContentDispositionHeader)
             {
+                section = await TryReadNextSectionAsync(cancellationToken, reader);
+                
                 continue;
             }
 
@@ -66,18 +58,19 @@ public class MultipartFileUploadProcessor : IMultipartFileUploadProcessor
             {
                 var fileSection = section.AsFileSection();
 
-
-                if (fileSection?.FileStream == null)
+                if (fileSection?.FileStream == null
+                    || IsFilestreamEmpty(fileSection.FileStream))
                 {
                     resultSet.Add(Result<UploadedFileDetails>
                         .Failure("File section and/or file stream  is null or empty!"));
 
+                    section = await TryReadNextSectionAsync(cancellationToken, reader);
+
                     continue;
-                }             
-                
+                }
+
                 var result = await _uploadedFilesManagementService.UploadFileStreamAsync(
                     fileSection.FileStream,
-                    request.ContentLength,
                     fileSection.FileName,
                     cancellationToken);
 
@@ -103,17 +96,39 @@ public class MultipartFileUploadProcessor : IMultipartFileUploadProcessor
                 resultSet.Add(result);
             }
 
-            try
-            {
-                section = await reader.ReadNextSectionAsync(cancellationToken);
-            }
-            catch (IOException)
-            {
-                section = null;
-            }
+
+            section = await TryReadNextSectionAsync(cancellationToken, reader);
         }
 
         return resultSet.ToImmutableList();
+    }
+
+    private static async Task<MultipartSection> TryReadNextSectionAsync(CancellationToken cancellationToken,
+        MultipartReader reader)
+    {
+        MultipartSection section;
+        try
+        {
+            section = await reader.ReadNextSectionAsync(cancellationToken);
+        }
+        catch (IOException)
+        {
+            section = null;
+        }
+
+        return section;
+    }
+
+    private static bool IsFilestreamEmpty(Stream fileSectionFileStream)
+    {
+        if (fileSectionFileStream.ReadByte() == -1)
+        {
+            return true;
+        }
+
+        fileSectionFileStream.Position = 0;
+
+        return false;
     }
 
     private static Encoding GetEncoding(MultipartSection section)

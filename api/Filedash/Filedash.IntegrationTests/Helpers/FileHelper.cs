@@ -17,7 +17,7 @@ public static class FileHelper
     private const string LargeMp4File = "file_example_MP4_1920_18MG.mp4";
     
     public static async Task<(string, byte[])> GetEmptyFileAsync()
-        => (EmptyFile, await ReadFileBytesAsync(SmallFile));
+        => (EmptyFile, await ReadFileBytesAsync(EmptyFile));
     
     public static async Task<(string, byte[])> GetSmallFileAsync()
         => (SmallFile, await ReadFileBytesAsync(SmallFile));
