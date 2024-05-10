@@ -1,6 +1,6 @@
 ﻿namespace Filedash.Domain.Models;
 
-public class UploadedFileDetails
+public record UploadedFileDetails
 {
     public Guid Id { get; set; }
     

@@ -6,6 +6,7 @@ using Filedash.Domain.Models;
 using Filedash.Web.Helpers;
 using Filedash.Web.Interfaces;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Net.Http.Headers;
 
@@ -30,6 +31,7 @@ public class MultipartFileUploadProcessor : IMultipartFileUploadProcessor
         {
             throw new Exception($"Expected a multipart request, but got {request.ContentType}");
         }
+        
 
         var boundary = MultipartRequestHelper
             .GetBoundary(
@@ -64,14 +66,15 @@ public class MultipartFileUploadProcessor : IMultipartFileUploadProcessor
             {
                 var fileSection = section.AsFileSection();
 
+
                 if (fileSection?.FileStream == null)
                 {
                     resultSet.Add(Result<UploadedFileDetails>
                         .Failure("File section and/or file stream  is null or empty!"));
 
                     continue;
-                }
-
+                }             
+                
                 var result = await _uploadedFilesManagementService.UploadFileStreamAsync(
                     fileSection.FileStream,
                     request.ContentLength,

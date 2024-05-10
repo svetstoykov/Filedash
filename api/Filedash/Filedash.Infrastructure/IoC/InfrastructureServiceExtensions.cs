@@ -12,9 +12,10 @@ public static class InfrastructureServiceExtensions
         => services
             .AddDbContext(configuration)
             .AddServicesFromCallingAssembly();
-
+    
     private static IServiceCollection AddDbContext(this IServiceCollection services, IConfiguration configuration) 
-        => services.AddDbContext<FiledashDbContext>(cfg =>
+        => services
+            .AddDbContext<FiledashDbContext>(cfg =>
             cfg.UseSqlServer(configuration.GetConnectionString("FiledashConnectionString")));
 
     private static IServiceCollection AddServicesFromCallingAssembly(this IServiceCollection services)

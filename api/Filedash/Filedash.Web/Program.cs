@@ -31,3 +31,5 @@ app.UseEndpoints(e =>
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.Run();
+
+public partial class Program { }

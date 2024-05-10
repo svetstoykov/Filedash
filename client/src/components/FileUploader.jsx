@@ -20,7 +20,7 @@ function FileUpload({ onUpload }) {
             setShowLoader(() => false);
 
             // rerender the input so that the files are cleared
-            setinputKey(() => Date.now());
+            setinputKey(() =>Date.now());
         }
     };
 

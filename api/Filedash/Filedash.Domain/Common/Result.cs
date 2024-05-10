@@ -1,7 +1,12 @@
-﻿namespace Filedash.Domain.Common;
+﻿using System.Text.Json.Serialization;
+
+namespace Filedash.Domain.Common;
 
 public class Result<T> : Result
 {
+    public Result()
+    { }
+    
     private Result(T data, bool isSuccessful = false, string message = null) : base(isSuccessful, message)
     {
         Data = data;
@@ -16,6 +21,9 @@ public class Result<T> : Result
 
 public class Result
 {
+    public Result()
+    { }
+    
     protected Result(bool isSuccessful, string message = null)
     {
         IsSuccessful = isSuccessful;

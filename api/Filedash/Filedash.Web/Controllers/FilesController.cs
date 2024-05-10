@@ -36,23 +36,23 @@ public class FilesController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteFile([FromRoute] Guid id, CancellationToken cancellationToken)
     {
-        var uploadResult = await _uploadedFilesManagementService
+        var result = await _uploadedFilesManagementService
             .DeleteFileAsync(id, cancellationToken);
 
-        return ProcessActionResult(uploadResult);
+        return ProcessServiceResult(result);
     }
 
     [HttpGet]
     [Route("list")]
     public async Task<IActionResult> ListAllUploadedFiles(CancellationToken cancellationToken)
     {
-        var uploadedFileDetails = await _uploadedFilesManagementService
+        var result = await _uploadedFilesManagementService
             .ListAllFilesAsync(cancellationToken);
 
-        return ProcessActionResult(uploadedFileDetails);
+        return ProcessServiceResult(result);
     }
 
-    private IActionResult ProcessActionResult(Result result)
+    private IActionResult ProcessServiceResult(Result result)
         => result.IsSuccessful
             ? Ok(result)
             : BadRequest(result);
