@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Text;
 using Filedash.Domain.Common;
+using Filedash.Domain.Extensions;
 using Filedash.Domain.Interfaces;
 using Filedash.Domain.Models;
 
@@ -9,19 +10,58 @@ namespace Filedash.Domain.Services;
 public class UploadedFilesManagementService : IUploadedFilesManagementService
 {
     private readonly IUploadedFilesRepository _uploadedFilesRepository;
+    private readonly IFileSettings _fileSettings;
 
-    public UploadedFilesManagementService(IUploadedFilesRepository uploadedFilesRepository)
+    public UploadedFilesManagementService(
+        IUploadedFilesRepository uploadedFilesRepository,
+        IFileSettings fileSettings)
     {
         _uploadedFilesRepository = uploadedFilesRepository;
+        _fileSettings = fileSettings;
     }
 
-    public async Task<Result<UploadedFileDetails>> UploadEncodedStringAsync(
-        string content,
-        string fileName,
+    public async Task<Result<UploadedFileDetails>> UploadEncodedFileStreamAsync(
+        Stream fileStream,
+        string fileNameWithExtension,
         Encoding encoding,
         CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        using var streamReader = new StreamReader(
+            fileStream, encoding);
+
+        var content = await streamReader.ReadLinesWithLimit(
+            _fileSettings.BinaryEncodedTextMaxLength);
+
+        var contentBuffer = new byte[content.Length];
+
+        if (!Convert.TryFromBase64String(content, contentBuffer, out var contentLength))
+        {
+            return Result<UploadedFileDetails>
+                .Failure("Input is not valid Base64 string. Only Base64 binary-to-text encoding is allowed!");
+        }
+
+        var (fileName, extension) = ExtractFileInfo(fileNameWithExtension);
+
+        var uploadedFile = UploadedFile.New(
+            fileName, extension, contentLength, contentBuffer, encoding.BodyName);
+
+        var fileExists = await _uploadedFilesRepository
+            .DoesFileNameWithExtensionExistAsync(fileName, extension, cancellationToken);
+
+        if (fileExists)
+        {
+            return Result<UploadedFileDetails>.Failure(
+                $"A file with name '{fileName}' and extension '{extension}' already exists!");
+        }
+
+        var isSuccessful = await _uploadedFilesRepository
+            .SaveUploadedFileAsync(uploadedFile, cancellationToken);
+
+        return isSuccessful
+            ? Result<UploadedFileDetails>.Success(
+                UploadedFileDetails.MapFromUploadedFile(uploadedFile))
+            : Result<UploadedFileDetails>.Failure(
+                $"Failed to save file: '{fileNameWithExtension}'!");
     }
 
     public async Task<Result<UploadedFileDetails>> UploadFileStreamAsync(
@@ -31,36 +71,52 @@ public class UploadedFilesManagementService : IUploadedFilesManagementService
     {
         var (fileName, extension) = ExtractFileInfo(fileNameWithExtension);
 
-        var validationResult = ValidateUploadInput(
-            fileStream, fileName, extension);
-
-        if (!validationResult.IsSuccessful)
-        {
-            return Result<UploadedFileDetails>.Failure();
-        }
+        var uploadedFile = UploadedFile.New(fileName, extension);
 
         var fileExists = await _uploadedFilesRepository
             .DoesFileNameWithExtensionExistAsync(fileName, extension, cancellationToken);
 
         if (fileExists)
         {
-            return Result<UploadedFileDetails>
-                .Failure($"A file with name '{fileName}' and extension '{extension}' already exists!");
+            return Result<UploadedFileDetails>.Failure(
+                $"A file with name '{fileName}' and extension '{extension}' already exists!");
         }
 
-        var uploadedFile = CreateUploadedFile(fileName, extension);
+        var tempFilePath = PrepareTempFilePath(fileNameWithExtension);
 
-        var createdId = await _uploadedFilesRepository
-            .StreamUploadedFileAsync(uploadedFile, fileStream, cancellationToken: cancellationToken);
-
-        return Result<UploadedFileDetails>.Success(
-            new UploadedFileDetails
+        Result<UploadedFileDetails> result;
+        try
         {
-            Id = createdId,
-            ContentLength = uploadedFile.ContentLength,
-            CreatedDateUtc = uploadedFile.CreatedDateUtc,
-            FullFileName = fileNameWithExtension
-        });
+            await using var temporaryFileStream = File.Create(tempFilePath);
+
+            await fileStream.CopyToAsync(temporaryFileStream, cancellationToken);
+
+            temporaryFileStream.Seek(0, SeekOrigin.Begin);
+
+            var contentLength = new FileInfo(tempFilePath).Length;
+
+            uploadedFile.SetContentLength(contentLength);
+
+            await _uploadedFilesRepository
+                .StreamUploadedFileAsync(
+                    uploadedFile,
+                    temporaryFileStream,
+                    cancellationToken: cancellationToken);
+
+            result = Result<UploadedFileDetails>.Success(
+                UploadedFileDetails.MapFromUploadedFile(uploadedFile));
+        }
+        catch (Exception ex)
+        {
+            result = Result<UploadedFileDetails>
+                .Failure(ex.Message);
+        }
+        finally
+        {
+            File.Delete(tempFilePath);
+        }
+
+        return result;
     }
 
     public async Task<Result<IImmutableList<UploadedFileDetails>>> ListAllFilesAsync(
@@ -82,34 +138,25 @@ public class UploadedFilesManagementService : IUploadedFilesManagementService
         var isDeleteSuccessful = await _uploadedFilesRepository
             .DeleteFileAsync(id, cancellationToken);
 
-        return isDeleteSuccessful 
-            ? Result.Success() 
+        return isDeleteSuccessful
+            ? Result.Success()
             : Result.Failure("Delete operation failed!");
     }
 
-    private static Result ValidateUploadInput(Stream fileStream, string fileName, string extension)
+    private string PrepareTempFilePath(string fileNameWithExtension)
     {
-        if (fileStream == null)
-        {
-            return Result
-                .Failure("File stream cannot be null or empty.");
-        }
+        var tempFileFolder = GetTempFileFolder();
 
-        if (string.IsNullOrWhiteSpace(fileName))
-        {
-            return Result
-                .Failure("File name cannot be null or empty.");
-        }
+        Directory.CreateDirectory(tempFileFolder);
 
-        if (string.IsNullOrEmpty(extension))
-        {
-            return Result
-                .Failure("File does not have valid file extension.");
-        }
-
-        return Result.Success();
+        return Path.Combine(tempFileFolder, fileNameWithExtension);
     }
 
+    private string GetTempFileFolder()
+        => Path.Combine(
+            AppDomain.CurrentDomain.BaseDirectory,
+            _fileSettings.TemporaryFileFolderName);
+    
     private static (string name, string extension) ExtractFileInfo(string fullFileName)
     {
         var extension = Path.GetExtension(fullFileName);
@@ -118,13 +165,4 @@ public class UploadedFilesManagementService : IUploadedFilesManagementService
 
         return (name, extension);
     }
-
-    private static UploadedFile CreateUploadedFile(string name, string extension)
-        => new()
-        {
-            Name = name,
-            Extension = extension,
-            ContentLength = default,
-            CreatedDateUtc = DateTime.UtcNow
-        };
 }

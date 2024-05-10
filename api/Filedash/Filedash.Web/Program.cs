@@ -22,13 +22,15 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("CorsPolicy");
 app.UseHttpsRedirection();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 app.UseRouting();
 app.UseEndpoints(e =>
 {
     e.MapControllers();
 });
 
-app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.Run();
 

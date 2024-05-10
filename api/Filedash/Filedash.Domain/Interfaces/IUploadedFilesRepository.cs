@@ -1,11 +1,16 @@
 ﻿using System.Collections.Immutable;
+using System.Linq.Expressions;
 using Filedash.Domain.Models;
 
 namespace Filedash.Domain.Interfaces;
 
 public interface IUploadedFilesRepository
 {
-    Task<Guid> StreamUploadedFileAsync(
+    Task<bool> SaveUploadedFileAsync(
+        UploadedFile uploadedFile, 
+        CancellationToken cancellationToken = default);
+    
+    Task<bool> StreamUploadedFileAsync(
         UploadedFile file,
         Stream fileContentStream,
         CancellationToken cancellationToken = default);

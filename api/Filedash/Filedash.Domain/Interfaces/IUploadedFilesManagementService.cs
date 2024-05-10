@@ -7,9 +7,9 @@ namespace Filedash.Domain.Interfaces;
 
 public interface IUploadedFilesManagementService
 {
-    Task<Result<UploadedFileDetails>> UploadEncodedStringAsync(
-        string content,
-        string fileName,
+    Task<Result<UploadedFileDetails>> UploadEncodedFileStreamAsync(
+        Stream fileStream,
+        string fileNameWithExtension,
         Encoding encoding,
         CancellationToken cancellationToken = default);
     

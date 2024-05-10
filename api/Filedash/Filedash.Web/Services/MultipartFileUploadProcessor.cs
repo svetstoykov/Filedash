@@ -50,7 +50,7 @@ public class MultipartFileUploadProcessor : IMultipartFileUploadProcessor
             if (!hasContentDispositionHeader)
             {
                 section = await TryReadNextSectionAsync(cancellationToken, reader);
-                
+
                 continue;
             }
 
@@ -58,8 +58,7 @@ public class MultipartFileUploadProcessor : IMultipartFileUploadProcessor
             {
                 var fileSection = section.AsFileSection();
 
-                if (fileSection?.FileStream == null
-                    || IsFilestreamEmpty(fileSection.FileStream))
+                if (fileSection?.FileStream == null)
                 {
                     resultSet.Add(Result<UploadedFileDetails>
                         .Failure("File section and/or file stream  is null or empty!"));
@@ -72,7 +71,7 @@ public class MultipartFileUploadProcessor : IMultipartFileUploadProcessor
                 var result = await _uploadedFilesManagementService.UploadFileStreamAsync(
                     fileSection.FileStream,
                     fileSection.FileName,
-                    cancellationToken);
+                    cancellationToken: cancellationToken);
 
                 resultSet.Add(result);
             }
@@ -84,19 +83,13 @@ public class MultipartFileUploadProcessor : IMultipartFileUploadProcessor
                 {
                     throw new NullReferenceException("Null encoding");
                 }
-
-                using var streamReader = new StreamReader(
-                    section.Body, encoding);
-
-                var value = await streamReader.ReadToEndAsync(cancellationToken);
-
-                var result = await _uploadedFilesManagementService.UploadEncodedStringAsync(
-                    value, key.Value, encoding, cancellationToken);
+                
+                var result = await _uploadedFilesManagementService
+                    .UploadEncodedFileStreamAsync(section.Body, key.Value, encoding, cancellationToken);
 
                 resultSet.Add(result);
             }
-
-
+            
             section = await TryReadNextSectionAsync(cancellationToken, reader);
         }
 
@@ -117,18 +110,6 @@ public class MultipartFileUploadProcessor : IMultipartFileUploadProcessor
         }
 
         return section;
-    }
-
-    private static bool IsFilestreamEmpty(Stream fileSectionFileStream)
-    {
-        if (fileSectionFileStream.ReadByte() == -1)
-        {
-            return true;
-        }
-
-        fileSectionFileStream.Position = 0;
-
-        return false;
     }
 
     private static Encoding GetEncoding(MultipartSection section)

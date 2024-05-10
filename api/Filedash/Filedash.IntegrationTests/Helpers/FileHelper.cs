@@ -49,10 +49,13 @@ public static class FileHelper
         return files;
     }
 
-    public static UploadedFile GetUploadedFile()
-        => Fixture.Build<UploadedFile>()
-            .With(g => g.Extension, TestFileExtension[Random.Next(0, TestFileExtension.Length)])
-            .Create();
+    public static UploadedFile GetUploadedFile(byte[] content = null)
+        => UploadedFile.New(
+            Fixture.Create<string>(),
+            TestFileExtension[Random.Next(0, TestFileExtension.Length)],
+            Fixture.Create<long>(),
+            content ?? Fixture.Create<byte[]>(),
+            "utf-8");
     
     private static async Task<byte[]> ReadFileBytesAsync(string fileName)
     {
