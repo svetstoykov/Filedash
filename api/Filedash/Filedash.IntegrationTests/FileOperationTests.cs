@@ -169,7 +169,7 @@ public class FileOperationTests : IClassFixture<FiledashWebApplicationFactory<Pr
         var result = JsonSerializer.Deserialize<IEnumerable<Result<UploadedFileDetails>>>(content, _jsonConfig);
         
         Assert.Equal(
-            "File section and/or file stream  is null or empty!", 
+            "Invalid content length! The file may be empty.", 
             result.First().Message);
     }
     
@@ -197,7 +197,7 @@ public class FileOperationTests : IClassFixture<FiledashWebApplicationFactory<Pr
         var successResult = result.First(r => r.IsSuccessful);
         
         Assert.Equal(
-            "File section and/or file stream  is null or empty!", 
+            "Invalid content length! The file may be empty.", 
             failedResult.Message);
         
         Assert.Equal(

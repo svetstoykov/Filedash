@@ -20,7 +20,7 @@ public class UploadedFilesManagementService : IUploadedFilesManagementService
         _fileSettings = fileSettings;
     }
 
-    public async Task<Result<UploadedFileDetails>> UploadEncodedFileStreamAsync(
+    public async Task<Result<UploadedFileDetails>> UploadBinaryEncodedTextStreamAsync(
         Stream fileStream,
         string fileNameWithExtension,
         Encoding encoding,

@@ -85,7 +85,7 @@ public class MultipartFileUploadProcessor : IMultipartFileUploadProcessor
                 }
                 
                 var result = await _uploadedFilesManagementService
-                    .UploadEncodedFileStreamAsync(section.Body, key.Value, encoding, cancellationToken);
+                    .UploadBinaryEncodedTextStreamAsync(section.Body, key.Value, encoding, cancellationToken);
 
                 resultSet.Add(result);
             }
