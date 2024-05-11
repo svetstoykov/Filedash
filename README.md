@@ -92,6 +92,11 @@ The flow is
 
 This allows for us to be very memory efficient. We can even upload files as big as 200MB+ without any memory issues.
 
+Here you can see a python script making 10 simultanious requests (5MB .mp3 file) every 3-5 seconds. The memory profile on the right shows the allocated memory and CPU usage.
+
+https://github.com/svetstoykov/Filedash/assets/49124818/6253d20d-a60f-40a1-b0fb-59a910457cf0
+
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
