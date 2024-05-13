@@ -79,7 +79,7 @@ The architecture is based around a very straightforward structure between 3 laye
 </p>
 
 ### Saving the files
-The flow of saving the files is: First the presentation layer processes the incloming `mulitpart/form-data`. Then we have the application/domain layer stream the incoming file-stream to the a temporary location on the filesystem. Then we use the injected interface of   `IUploadedFilesRepository` to call:
+When we first receive a save-file request the presentation layer processes the incloming `mulitpart/form-data`. Then we have the application/domain layer stream the incoming file-stream to the a temporary location on the filesystem. Then we use the injected interface of  `IUploadedFilesRepository` to call:
 
 ```
 Task<bool> StreamUploadedFileAsync(
@@ -88,7 +88,7 @@ Task<bool> StreamUploadedFileAsync(
         CancellationToken cancellationToken = default);
 ```
 
-This allows us to be flexible and change the underlying implementation without affecting the core logic. Using streams allows us to maintian a low memory footprint.
+This allows us to upload the file to a storage location of our choice without coupling it to the core logic. In addition to that using streams allows us to maintian a low memory footprint.
 
 ### Load-test
 
