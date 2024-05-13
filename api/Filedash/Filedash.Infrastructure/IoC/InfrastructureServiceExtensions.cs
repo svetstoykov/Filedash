@@ -15,9 +15,9 @@ public static class InfrastructureServiceExtensions
         => services
             .AddDbContext(configuration)
             .AddServicesFromCallingAssembly()
-            .AddTemporaryFileSettings(configuration);
+            .AddFileSettingsConfig(configuration);
 
-    private static IServiceCollection AddTemporaryFileSettings(this IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection AddFileSettingsConfig(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<FileSettings>(
             configuration.GetSection(nameof(FileSettings)));
