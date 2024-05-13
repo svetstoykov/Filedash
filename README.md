@@ -19,7 +19,7 @@ To run this project locally, you will need:
 
 ### Terminal Commands
 
--   Restore the dependencies and build using `dotnet restore` => `dotnet build`
+-   Restore the dependencies and build using `dotnet restore`, then `dotnet build`
 -   To create a database migrations `dotnet ef migrations add "Migration_Name"`
 -   Apply the database migrations using `dotnet ef database update`
 -   Run the project using `dotnet run`
