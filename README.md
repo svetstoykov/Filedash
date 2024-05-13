@@ -17,14 +17,6 @@ To run this project locally, you will need:
 
 -   To install EF CLI use `dotnet tool install --global dotnet-ef`
 
-### Terminal Commands
-
--   To install ef cli `dotnet tool install --global dotnet-ef`
--   Restore the dependencies using `dotnet restore`
--   To create a database migrations `dotnet ef migrations add "Migration_Name"`
--   Apply the database migrations using `dotnet ef database update`
--   Run the project using `dotnet run`
-
 ### Backend (API)
 
 #### Installation
@@ -32,17 +24,16 @@ To run this project locally, you will need:
 1. Clone the repository `git clone https://github.com/svetstoykov/Filedash.git`
 2. Navigate to the `api/Fildash` directory and open a command-line terminal.
 3. Install dependencies using `dotnet restore` and then build using `dontnet build`.
-4. To create a database migrations `dotnet ef migrations add "Initial"` \*
-5. Apply the database migrations using `dotnet ef database update`\*
-6. Configure the database connection in `appsettings.json`.\*\*
+4. Configure the database connection in `appsettings.json`.\*
+5. Apply the database migrations using `dotnet ef database update`\*\*
 
-\* You might need to append `--project Filedash.Infrastructure  --startup-project Filedash.Web` so that EF can locate the relevant projects.
+\* For SQL_Express you will need to update the `appsettings.json` with the relevent localhost server name.
 
-\*\* For SQL_Express you will need to update the `appsettings.json` with the relevent localhost server name.
+\*\* You might need to append `--project Filedash.Infrastructure  --startup-project Filedash.Web` so that EF can locate the relevant projects.
 
 #### Running the API
 
-Depending on what you choose you may run the api by navigating to api/Filedash/Filedash.Web and starting the app with `dotnet run`. This will startup the Kestrel server on `http://localhost:5032` (configurered in `Properties/launchSettings.json`)
+Depending on what you choose you may run the api by navigating to api/Filedash/Filedash.Web and starting the app with `dotnet run --project Filedash.Web`. This will startup the Kestrel server on `http://localhost:5032` (configurered in `Properties/launchSettings.json`)
 
 Alternatively you may choose to run the application via IIS. This will start the app on `https://localhost:44338`
 
@@ -50,12 +41,12 @@ Alternatively you may choose to run the application via IIS. This will start the
 
 1. Navigate to the `client` directory.
 2. Install dependencies using `npm install`.
-3. Create an `.env` file and configure the `VITE_FILEDASH_API_URL`.
+3. Create an `.env` file and configure the `VITE_FILEDASH_API_URL` (i.e. `VITE_FILEDASH_API_URL='http://localhost:5032/api'`).
 4. Start the development server using `npm run dev`.
 
 ## Usage
 
--   Access the Filedash web application through your browser by visiting the url you configured in the `.env` file
+-   Access the Filedash web application through your browser by visiting `http://localhost:5173/`
 -   Start managing your files by uploading and organizing them as needed!
 
 <p align="center" style="margin:30px">
