@@ -127,12 +127,12 @@ public class FileOperationTests : IClassFixture<FiledashWebApplicationFactory<Pr
     [Fact]
     public async Task Upload_WithInvalidDuplicateNames_ReturnsBadRequest()
     {
-        var file = FileHelper.GetUploadedFile();
+        var existingFile = FileHelper.GetUploadedFile();
         
-        await InitializeDbAsync(file);
+        await InitializeDbAsync(existingFile);
 
         var (_, fileBytes) = await FileHelper.GetSmallFileAsync();
-        var fullFileName = $"{file.Name}{file.Extension}";
+        var fullFileName = $"{existingFile.Name}{existingFile.Extension}";
         
         var form = new MultipartFormDataContent();
 
@@ -146,7 +146,7 @@ public class FileOperationTests : IClassFixture<FiledashWebApplicationFactory<Pr
         var result = JsonSerializer.Deserialize<IEnumerable<Result<UploadedFileDetails>>>(content, _jsonConfig);
 
         Assert.Equal(
-            $"A file with name '{file.Name}' and extension '{file.Extension}' already exists!",
+            $"A file with name '{existingFile.Name}' and extension '{existingFile.Extension}' already exists!",
             result.First().Message);
     }
 

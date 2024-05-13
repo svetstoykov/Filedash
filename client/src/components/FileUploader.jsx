@@ -20,7 +20,7 @@ function FileUpload({ onUpload }) {
             setShowLoader(() => false);
 
             // rerender the input so that the files are cleared
-            setinputKey(() =>Date.now());
+            setinputKey(() => Date.now());
         }
     };
 
@@ -36,8 +36,8 @@ function FileUpload({ onUpload }) {
                         onChange={handleChange}
                         multiple
                         accept=".*"
-                        data-max-size="1073741824"
-                        title="Maximum file size: 1GB"
+                        data-max-size="536870912"
+                        title="Maximum file size: 512MB"
                     />
                 </div>
                 <button
