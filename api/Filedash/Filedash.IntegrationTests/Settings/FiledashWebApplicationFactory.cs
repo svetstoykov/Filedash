@@ -32,6 +32,6 @@ public class FiledashWebApplicationFactory<TProgram> : WebApplicationFactory<TPr
             });
         });
 
-        builder.UseEnvironment("Testing");
+        builder.UseEnvironment("Development");
     }
 }

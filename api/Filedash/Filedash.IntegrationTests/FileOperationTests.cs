@@ -131,7 +131,7 @@ public class FileOperationTests : IClassFixture<FiledashWebApplicationFactory<Pr
         
         await InitializeDbAsync(existingFile);
 
-        var (_, fileBytes) = await FileHelper.GetSmallFileAsync();
+        var (_, fileBytes) = await FileHelper.GetMediumFileAsync();
         var fullFileName = $"{existingFile.Name}{existingFile.Extension}";
         
         var form = new MultipartFormDataContent();
