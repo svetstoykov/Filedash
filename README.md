@@ -17,13 +17,6 @@ To run this project locally, you will need:
 
 -   To install EF CLI use `dotnet tool install --global dotnet-ef`
 
-### Terminal Commands
-
--   Restore the dependencies and build using `dotnet restore`, then `dotnet build`
--   To create a database migrations `dotnet ef migrations add "Migration_Name"`
--   Apply the database migrations using `dotnet ef database update`
--   Run the project using `dotnet run`
-
 ### Backend (API)
 
 #### Installation
