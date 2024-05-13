@@ -1,10 +1,8 @@
 // api.js
 import axios from "axios";
 
-const API_BASE_URL = "https://localhost:44338/api";
-
 const instance = axios.create({
-    baseURL: API_BASE_URL,
+    baseURL: import.meta.env.VITE_FILEDASH_API_URL,
 });
 
 const agent = {

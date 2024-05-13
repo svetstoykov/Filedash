@@ -1,9 +1,7 @@
 # Filedash
 Filedash is a file management application with a backend web API built in .NET and a client application developed in React.
 
-It allows users to upload files to an SQL Database and list them. Filedash manages all it's uploads via streams, so it has a very little memory footprint.
-
-The **usage of SQL Database as a storage for the content is intentional**. This is more of a demo project showcasing how we can achieve this, by being memory efficient.
+It allows users to upload files to a storage of choice and list them. Filedash manages all it's uploads via streams, so it has a very little memory footprint.
 
 ## Getting Started
 
@@ -81,16 +79,18 @@ The architecture is based around a very straightforward structure between 3 laye
 </p>
 
 ### Saving the files
-Saving the files here has a very specific approach, which was built as more of a concept. In almost every case, if you have files that are over 1MB you would want to use a file system to save them. Here however we are using streams to process the data towards an SQL Database.
+The flow of saving the files is: First the presentation layer processes the incloming `mulitpart/form-data`. Then we have the application/domain layer stream the incoming file-stream to the a temporary location on the filesystem. Then we use the injected interface of   `IUploadedFilesRepository` to call:
 
-The flow is 
-1. We get a file upload request
-2. Read the request and get various information - filename, stream etc.
-3. We make our validations for duplicate names and/or invalid content.
-4. We then stream the file to temp file location on the local hard drive
-5. Upload the stream to whatever transport layer we choose (MS SQL, Azure File Service etc.)
+```
+Task<bool> StreamUploadedFileAsync(
+        UploadedFile file,
+        Stream fileContentStream,
+        CancellationToken cancellationToken = default);
+```
 
-This allows for us to be very memory efficient. We can even upload files as big as 200MB+ without any memory issues.
+This allows us to be flexible and change the underlying implementation without affecting the core logic. Using streams allows us to maintian a low memory footprint.
+
+### Load-test
 
 Here you can see a python script making 10 simultanious requests (5MB .mp3 file) every 3-5 seconds. The memory profile on the right shows the allocated memory and CPU usage.
 
