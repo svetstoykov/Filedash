@@ -50,7 +50,7 @@ Alternatively you may choose to run the application via IIS. This will start the
 
 1. Navigate to the `client` directory.
 2. Install dependencies using `npm install`.
-3. Configure the API endpoint in `.env` file.
+3. Create an `.env` file and configure the `VITE_FILEDASH_API_URL`.
 4. Start the development server using `npm run dev`.
 
 ## Usage
