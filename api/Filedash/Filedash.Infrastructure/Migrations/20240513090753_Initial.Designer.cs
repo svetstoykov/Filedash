@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Filedash.Infrastructure.Migrations
 {
     [DbContext(typeof(FiledashDbContext))]
-    [Migration("20240508081600_Initial")]
+    [Migration("20240513090753_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -25,7 +25,7 @@ namespace Filedash.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Filedash.Domain.Models.UploadFile", b =>
+            modelBuilder.Entity("Filedash.Domain.Models.UploadedFile", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -35,8 +35,15 @@ namespace Filedash.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("varbinary(max)");
 
-                    b.Property<DateTime>("CreatedDate")
+                    b.Property<long>("ContentLength")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreatedDateUtc")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("EncodingType")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("Extension")
                         .IsRequired()

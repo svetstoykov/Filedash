@@ -18,8 +18,10 @@ namespace Filedash.Infrastructure.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Extension = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
+                    CreatedDateUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EncodingType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     Content = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    ContentLength = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
                 {
