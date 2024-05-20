@@ -133,6 +133,27 @@ public class UploadedFilesManagementService : IUploadedFilesManagementService
             .Success(sortedFiles);
     }
 
+    public async Task<Result<(string, string)>> DownloadFileToLocalPathAsync(
+        Guid id, CancellationToken cancellationToken = default)
+    {
+        var file = await _uploadedFilesRepository
+            .GetByIdAsync(id, cancellationToken);
+
+        if (file == null)
+        {
+            return Result<(string, string)>
+                .Failure("File does not exist!");
+        }
+        
+        var path = PrepareTempFilePath(Guid.NewGuid().ToString());
+
+        await _uploadedFilesRepository
+            .CopyFileStreamToLocalPathByIdAsync(id, path, cancellationToken);
+
+        return Result<(string, string)>
+            .Success((path, file.FullFileName));
+    }
+
     public async Task<Result> DeleteFileAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var isDeleteSuccessful = await _uploadedFilesRepository

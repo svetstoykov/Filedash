@@ -1,4 +1,6 @@
 ﻿using System.Data;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Filedash.Domain.Interfaces;
 using Filedash.Domain.Models;
 using Filedash.Infrastructure.DbContext;
@@ -10,13 +12,18 @@ namespace Filedash.Infrastructure.Repositories;
 public class UploadedFilesRepository : IUploadedFilesRepository
 {
     private readonly FiledashDbContext _context;
+    private readonly IMapper _mapper;
 
-    public UploadedFilesRepository(FiledashDbContext context)
+    public UploadedFilesRepository(
+        FiledashDbContext context,
+        IMapper mapper)
     {
         _context = context;
+        _mapper = mapper;
     }
 
-    public async Task<bool> SaveUploadedFileAsync(UploadedFile uploadedFile, CancellationToken cancellationToken = default)
+    public async Task<bool> SaveUploadedFileAsync(UploadedFile uploadedFile,
+        CancellationToken cancellationToken = default)
     {
         _context.Add(uploadedFile);
 
@@ -61,10 +68,41 @@ public class UploadedFilesRepository : IUploadedFilesRepository
             .Where(f => f.Id == id)
             .ExecuteDeleteAsync(cancellationToken) > 0;
 
+    public async Task<UploadedFileDetails> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        => await _context.UploadedFiles
+            .ProjectTo<UploadedFileDetails>(_mapper.ConfigurationProvider)
+            .FirstOrDefaultAsync(f => f.Id == id, cancellationToken: cancellationToken);
+
+    public async Task CopyFileStreamToLocalPathByIdAsync(
+        Guid id, string localPath, CancellationToken cancellationToken = default)
+    {
+        await using var connection = new SqlConnection(
+            _context.Database.GetDbConnection().ConnectionString);
+
+        await connection.OpenAsync(cancellationToken);
+
+        await using var command = new SqlCommand(
+            "SELECT [Content] FROM [dbo].[UploadedFiles] WHERE [id]=@id", connection);
+
+        command.Parameters.Add(new SqlParameter("@id", SqlDbType.UniqueIdentifier) {Value = id});
+
+        await using var reader = await command.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
+
+        if (!await reader.ReadAsync(cancellationToken) || await reader.IsDBNullAsync(default, cancellationToken))
+        {
+            throw new InvalidOperationException();
+        }
+
+        await using var fileStream = File.Open(localPath, FileMode.Create, FileAccess.Write);
+
+        await using var data = reader.GetStream(0);
+
+        await data.CopyToAsync(fileStream, cancellationToken);
+    }
+
     public async Task<IEnumerable<UploadedFileDetails>> ListAllUploadedFiles(
         CancellationToken cancellationToken = default)
         => await _context.UploadedFiles
-            .Select(f => new UploadedFile(f.Id, f.Name, f.Extension, f.CreatedDateUtc,f.ContentLength, null, f.EncodingType))
-            .Select(f => UploadedFileDetails.MapFromUploadedFile(f))
+            .ProjectTo<UploadedFileDetails>(_mapper.ConfigurationProvider)
             .ToListAsync(cancellationToken);
 }

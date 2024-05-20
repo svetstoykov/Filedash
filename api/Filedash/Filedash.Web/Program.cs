@@ -31,7 +31,6 @@ app.UseEndpoints(e =>
     e.MapControllers();
 });
 
-
 app.Run();
 
 public partial class Program { }

@@ -52,11 +52,31 @@ function App() {
         }
     };
 
+    const handleDownload = async (id) => {
+        try {
+            const response = await agent.downloadFile(id);
+
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement("a");
+            link.href = url;
+            const contentDisposition = response.headers["content-disposition"];
+            const fileName = contentDisposition
+                ? contentDisposition.split("filename=")[1].split(";")[0].trim()
+                : "downloaded_file";
+            link.setAttribute("download", fileName);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (error) {
+            console.error("Download failed", error);
+        }
+    };
+
     return (
         <div className="container mt-6">
             <h1>Filedash App</h1>
             <FileUploader onUpload={handleUpload} />
-            <FilesGrid files={files} onDelete={handleDelete} />
+            <FilesGrid files={files} onDelete={handleDelete} onDownload={handleDownload} />
             <ToastContainer position="top-center" />
         </div>
     );

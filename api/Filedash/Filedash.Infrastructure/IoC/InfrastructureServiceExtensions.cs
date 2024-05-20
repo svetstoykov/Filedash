@@ -1,5 +1,7 @@
-﻿using Filedash.Domain.Interfaces;
+﻿using System.Reflection;
+using Filedash.Domain.Interfaces;
 using Filedash.Infrastructure.DbContext;
+using Filedash.Infrastructure.Mappings;
 using Filedash.Infrastructure.Settings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -15,7 +17,8 @@ public static class InfrastructureServiceExtensions
         => services
             .AddDbContext(configuration)
             .AddServicesFromCallingAssembly()
-            .AddFileSettingsConfig(configuration);
+            .AddFileSettingsConfig(configuration)
+            .AddAutoMapper(cfg => cfg.AddProfile(typeof(MappingConfiguration)));
 
     private static IServiceCollection AddFileSettingsConfig(this IServiceCollection services, IConfiguration configuration)
     {

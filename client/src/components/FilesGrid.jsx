@@ -2,16 +2,25 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Button } from "primereact/button";
 
-function FileList({ files, onDelete }) {
+function FileList({ files, onDelete, onDownload }) {
     const actionBodyTemplate = (rowData) => {
         return (
-            <Button
-                icon="pi pi-trash"
-                rounded
-                outlined
-                severity="danger"
-                onClick={() => onDelete(rowData.id)}
-            />
+            <>
+                <Button
+                    icon="pi pi-download"
+                    rounded
+                    outlined
+                    severity="success"
+                    onClick={() => onDownload(rowData.id)}
+                />
+                <Button
+                    icon="pi pi-trash"
+                    rounded
+                    outlined
+                    severity="danger"
+                    onClick={() => onDelete(rowData.id)}
+                />
+            </>
         );
     };
 

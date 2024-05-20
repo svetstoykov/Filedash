@@ -2,6 +2,7 @@
 using Filedash.Domain.Interfaces;
 using Filedash.Web.Attributes;
 using Filedash.Web.Interfaces;
+using Filedash.Web.Results;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Filedash.Web.Controllers;
@@ -50,6 +51,26 @@ public class FilesController : ControllerBase
             .ListAllFilesAsync(cancellationToken);
 
         return ProcessServiceResult(result);
+    }
+
+    [HttpGet]
+    [Route("download/{id}")]
+    public async Task<IActionResult> DownloadFile(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _uploadedFilesManagementService
+            .DownloadFileToLocalPathAsync(id, cancellationToken);
+        
+        if (!result.IsSuccessful)
+        {
+            return BadRequest(result);
+        }
+
+        var (path, fileName) = result.Data;
+
+        var fileStream = System.IO.File.Open(path, FileMode.Open);
+        
+        return new TempFileStreamResult(
+            fileStream, "application/octet-stream", path, fileName);
     }
 
     private IActionResult ProcessServiceResult(Result result)
