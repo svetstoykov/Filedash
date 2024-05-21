@@ -26,6 +26,10 @@ public interface IUploadedFilesManagementService
         CancellationToken cancellationToken = default);
 
     Task<Result> DeleteFileAsync(
+        string fullPathWithFileName,
+        CancellationToken cancellationToken = default);
+
+    Task<Result> DeleteFileAsync(
         Guid id, 
         CancellationToken cancellationToken = default);
 }

@@ -4,6 +4,7 @@ using Filedash.Domain.Common;
 using Filedash.Domain.Extensions;
 using Filedash.Domain.Interfaces;
 using Filedash.Domain.Models;
+using Microsoft.Extensions.Logging;
 
 namespace Filedash.Domain.Services;
 
@@ -11,13 +12,16 @@ public class UploadedFilesManagementService : IUploadedFilesManagementService
 {
     private readonly IUploadedFilesRepository _uploadedFilesRepository;
     private readonly IFileSettings _fileSettings;
+    private readonly ILogger<UploadedFilesManagementService> _logger;
 
     public UploadedFilesManagementService(
         IUploadedFilesRepository uploadedFilesRepository,
-        IFileSettings fileSettings)
+        IFileSettings fileSettings,
+        ILogger<UploadedFilesManagementService> logger)
     {
         _uploadedFilesRepository = uploadedFilesRepository;
         _fileSettings = fileSettings;
+        _logger = logger;
     }
 
     public async Task<Result<UploadedFileDetails>> UploadBinaryEncodedTextStreamAsync(
@@ -29,7 +33,7 @@ public class UploadedFilesManagementService : IUploadedFilesManagementService
         using var streamReader = new StreamReader(
             fileStream, encoding);
 
-        var content = await streamReader.ReadLinesWithLimit(
+        var content = await streamReader.ReadLinesWithLimitAsync(
             _fileSettings.BinaryEncodedTextMaxLength);
 
         var contentBuffer = new byte[content.Length];
@@ -144,7 +148,7 @@ public class UploadedFilesManagementService : IUploadedFilesManagementService
             return Result<(string, string)>
                 .Failure("File does not exist!");
         }
-        
+
         var path = PrepareTempFilePath(Guid.NewGuid().ToString());
 
         await _uploadedFilesRepository
@@ -156,12 +160,44 @@ public class UploadedFilesManagementService : IUploadedFilesManagementService
 
     public async Task<Result> DeleteFileAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var isDeleteSuccessful = await _uploadedFilesRepository
-            .DeleteFileAsync(id, cancellationToken);
+        try
+        {
+            var isDeleteSuccessful = await _uploadedFilesRepository
+                .DeleteFileAsync(id, cancellationToken);
 
-        return isDeleteSuccessful
-            ? Result.Success()
-            : Result.Failure("Delete operation failed!");
+            if (isDeleteSuccessful)
+            {
+                return Result.Success();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                $"{nameof(DeleteFileAsync)} Failed\n{ex.Message}\n{ex.StackTrace}");
+        }
+
+        return Result.Failure("Delete operation failed!");
+    }
+
+    public async Task<Result> DeleteFileAsync(
+        string fullPathWithFileName,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (File.Exists(fullPathWithFileName))
+            {
+                await Task.Run(() => File.Delete(fullPathWithFileName), cancellationToken);
+            }
+
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"{nameof(DeleteFileAsync)} Failed\n{ex.Message}\n{ex.StackTrace}");
+        }
+
+        return Result.Failure("Delete operation failed!");
     }
 
     private string PrepareTempFilePath(string fileNameWithExtension)
@@ -177,7 +213,7 @@ public class UploadedFilesManagementService : IUploadedFilesManagementService
         => Path.Combine(
             AppDomain.CurrentDomain.BaseDirectory,
             _fileSettings.TemporaryFileFolderName);
-    
+
     private static (string name, string extension) ExtractFileInfo(string fullFileName)
     {
         var extension = Path.GetExtension(fullFileName);

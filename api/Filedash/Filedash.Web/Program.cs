@@ -2,6 +2,7 @@ using Filedash.Domain.IoC;
 using Filedash.Infrastructure.IoC;
 using Filedash.Web.IoC;
 using Filedash.Web.Middleware;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
@@ -9,7 +10,7 @@ var services = builder.Services;
 services
     .AddDomainServices()
     .AddInfrastructureServices(builder.Configuration)
-    .AddWebServices(builder.Configuration);
+    .AddWebServices(builder.Configuration, builder.Logging);
 
 var app = builder.Build();
 

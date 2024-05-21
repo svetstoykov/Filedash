@@ -2,7 +2,7 @@
 using Filedash.Domain.Interfaces;
 using Filedash.Web.Attributes;
 using Filedash.Web.Interfaces;
-using Filedash.Web.Results;
+using Hangfire;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Filedash.Web.Controllers;
@@ -23,6 +23,7 @@ public class FilesController : ControllerBase
     }
 
     [DisableFormValueModelBinding]
+    [DisableRequestSizeLimit]
     [HttpPost("upload")]
     public async Task<IActionResult> UploadFile(CancellationToken cancellationToken)
     {
@@ -68,9 +69,16 @@ public class FilesController : ControllerBase
         var (path, fileName) = result.Data;
 
         var fileStream = System.IO.File.Open(path, FileMode.Open);
+
+        Response.OnCompleted(() =>
+        {
+            BackgroundJob.Enqueue<IUploadedFilesManagementService>(
+                s => s.DeleteFileAsync(path, cancellationToken));
+            
+            return Task.CompletedTask;
+        });
         
-        return new TempFileStreamResult(
-            fileStream, "application/octet-stream", path, fileName);
+        return File(fileStream, "application/octet-stream", fileName);
     }
 
     private IActionResult ProcessServiceResult(Result result)

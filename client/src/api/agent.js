@@ -25,6 +25,7 @@ const agent = {
     downloadFile: async (id) => {
         return await instance.get(`/files/download/${id}`, {
             responseType: "blob",
+            withCredentials: true
         });
     },
 };

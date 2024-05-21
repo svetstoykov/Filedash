@@ -59,16 +59,21 @@ function App() {
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement("a");
             link.href = url;
-            const contentDisposition = response.headers["content-disposition"];
-            const fileName = contentDisposition
-                ? contentDisposition.split("filename=")[1].split(";")[0].trim()
-                : "downloaded_file";
-            link.setAttribute("download", fileName);
+
+            var filename = "";
+            const disposition = response.headers['content-disposition'];
+            if (disposition && disposition.indexOf('attachment') !== -1) {
+                const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                const matches = filenameRegex.exec(disposition);
+                if (matches != null && matches[1]) filename = matches[1].replace(/['"]/g, '');
+            }
+
+            link.setAttribute("download", filename);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         } catch (error) {
-            console.error("Download failed", error);
+            toast.error(error.response.data.message);
         }
     };
 
