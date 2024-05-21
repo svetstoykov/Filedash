@@ -70,15 +70,20 @@ public class FilesController : ControllerBase
 
         var fileStream = System.IO.File.Open(path, FileMode.Open);
 
+        DeleteFileOnResponseCompleted(path);
+        
+        return File(fileStream, "application/octet-stream", fileName);
+    }
+
+    private void DeleteFileOnResponseCompleted(string path)
+    {
         Response.OnCompleted(() =>
         {
             BackgroundJob.Enqueue<IUploadedFilesManagementService>(
-                s => s.DeleteFileAsync(path, cancellationToken));
+                s => s.DeleteFileAsync(path, default));
             
             return Task.CompletedTask;
         });
-        
-        return File(fileStream, "application/octet-stream", fileName);
     }
 
     private IActionResult ProcessServiceResult(Result result)
