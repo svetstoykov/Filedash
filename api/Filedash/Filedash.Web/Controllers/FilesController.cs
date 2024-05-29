@@ -13,13 +13,16 @@ public class FilesController : ControllerBase
 {
     private readonly IMultipartFileUploadProcessor _multipartFileUploadProcessor;
     private readonly IUploadedFilesManagementService _uploadedFilesManagementService;
+    private readonly IFileSettings _fileSettings;
 
     public FilesController(
         IMultipartFileUploadProcessor multipartFileUploadProcessor,
-        IUploadedFilesManagementService uploadedFilesManagementService)
+        IUploadedFilesManagementService uploadedFilesManagementService, 
+        IFileSettings fileSettings)
     {
         _multipartFileUploadProcessor = multipartFileUploadProcessor;
         _uploadedFilesManagementService = uploadedFilesManagementService;
+        _fileSettings = fileSettings;
     }
 
     [DisableFormValueModelBinding]
@@ -68,23 +71,22 @@ public class FilesController : ControllerBase
 
         var (path, fileName) = result.Data;
 
+        ScheduleFileDeleteOnResponseCompleted(path);
+        
         var fileStream = System.IO.File.Open(path, FileMode.Open);
-
-        DeleteFileOnResponseCompleted(path);
         
         return File(fileStream, "application/octet-stream", fileName);
     }
 
-    private void DeleteFileOnResponseCompleted(string path)
-    {
-        Response.OnCompleted(() =>
+    private void ScheduleFileDeleteOnResponseCompleted(string path)
+        => Response.OnCompleted(() =>
         {
-            BackgroundJob.Enqueue<IUploadedFilesManagementService>(
-                s => s.DeleteFileAsync(path, default));
+            BackgroundJob.Schedule<IUploadedFilesManagementService>(
+                s => s.DeleteFileAsync(path, default),
+                TimeSpan.FromMinutes(_fileSettings.FileDeleteDelayAfterDownloadInMinutes));
             
             return Task.CompletedTask;
         });
-    }
 
     private IActionResult ProcessServiceResult(Result result)
         => result.IsSuccessful
