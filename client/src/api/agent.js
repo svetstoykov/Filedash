@@ -22,6 +22,12 @@ const agent = {
     deleteFile: async (id) => {
         await instance.delete(`/files/${id}`);
     },
+    downloadFile: async (id) => {
+        return await instance.get(`/files/download/${id}`, {
+            responseType: "blob",
+            withCredentials: true
+        });
+    },
 };
 
 export default agent;

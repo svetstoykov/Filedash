@@ -21,6 +21,14 @@ public interface IUploadedFilesManagementService
     Task<Result<IImmutableList<UploadedFileDetails>>> ListAllFilesAsync(
         CancellationToken cancellationToken = default);
 
+    Task<Result<(string, string)>> DownloadFileContentToLocalPathAsync(
+        Guid id, 
+        CancellationToken cancellationToken = default);
+
+    Task<Result> DeleteFileAsync(
+        string fullPathWithFileName,
+        CancellationToken cancellationToken = default);
+
     Task<Result> DeleteFileAsync(
         Guid id, 
         CancellationToken cancellationToken = default);

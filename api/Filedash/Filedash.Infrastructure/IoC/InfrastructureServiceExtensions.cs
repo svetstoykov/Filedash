@@ -1,6 +1,9 @@
-﻿using Filedash.Domain.Interfaces;
+﻿using System.Reflection;
+using Filedash.Domain.Interfaces;
 using Filedash.Infrastructure.DbContext;
+using Filedash.Infrastructure.Mappings;
 using Filedash.Infrastructure.Settings;
+using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,8 +18,23 @@ public static class InfrastructureServiceExtensions
         => services
             .AddDbContext(configuration)
             .AddServicesFromCallingAssembly()
-            .AddFileSettingsConfig(configuration);
+            .AddFileSettingsConfig(configuration)
+            .AddAutoMapper(cfg => cfg.AddProfile(typeof(MappingConfiguration)))
+            .UseHangfire();
 
+    private static IServiceCollection UseHangfire(this IServiceCollection services)
+    {
+        services.AddHangfire(cfg => cfg
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UseInMemoryStorage());
+
+        services.AddHangfireServer();
+
+        return services;
+    }
+    
     private static IServiceCollection AddFileSettingsConfig(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<FileSettings>(

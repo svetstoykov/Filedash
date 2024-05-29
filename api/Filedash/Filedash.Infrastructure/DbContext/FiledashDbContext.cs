@@ -31,6 +31,11 @@ public partial class FiledashDbContext : Microsoft.EntityFrameworkCore.DbContext
             entity.Property(e => e.EncodingType)
                 .HasMaxLength(50)
                 .IsRequired(false);
+
+            entity
+                .HasIndex(e => new {e.Name, e.Extension})
+                .HasDatabaseName("UQ_UploadedFile_Name_Extension")
+                .IsUnique();
         });
     }
 }

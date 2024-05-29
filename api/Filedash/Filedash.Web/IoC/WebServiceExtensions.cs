@@ -1,10 +1,15 @@
-﻿using Microsoft.AspNetCore.Http.Features;
+﻿using Hangfire;
+using Microsoft.AspNetCore.Http.Features;
+using Serilog;
 
 namespace Filedash.Web.IoC;
 
 public static class WebServiceExtensions
 {
-    public static IServiceCollection AddWebServices(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddWebServices(
+        this IServiceCollection services, 
+        IConfiguration configuration,
+        ILoggingBuilder loggingBuilder)
     {
         services.AddControllers();
 
@@ -23,11 +28,29 @@ public static class WebServiceExtensions
             .FromCallingAssembly()
             .AddClasses()
             .AsMatchingInterface());
+        
+        loggingBuilder
+            .UseSerilog(configuration);
 
         return services
             .AddCorsPolicy()
             .AddEndpointsApiExplorer()
             .AddSwaggerGen();
+    }
+
+    private static ILoggingBuilder UseSerilog(
+        this ILoggingBuilder builderLogging, 
+        IConfiguration configuration)
+    {
+        var logger = new LoggerConfiguration()
+            .ReadFrom.Configuration(configuration)
+            .Enrich.FromLogContext()
+            .CreateLogger();
+
+        builderLogging.ClearProviders();
+        builderLogging.AddSerilog(logger);
+
+        return builderLogging;
     }
 
     private static IServiceCollection AddCorsPolicy(this IServiceCollection services)
@@ -39,6 +62,7 @@ public static class WebServiceExtensions
                     .AllowAnyMethod()
                     .AllowAnyHeader()
                     .AllowCredentials()
+                    .WithExposedHeaders("Content-Disposition")
                     .WithOrigins("http://localhost:5173");
             });
         });

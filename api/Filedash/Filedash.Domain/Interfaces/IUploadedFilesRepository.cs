@@ -24,6 +24,12 @@ public interface IUploadedFilesRepository
         Guid id, 
         CancellationToken cancellationToken = default);
 
-    Task<IEnumerable<UploadedFileDetails>> ListAllUploadedFiles(
+    Task<UploadedFileDetails> GetByIdAsync(
+        Guid id, CancellationToken cancellationToken = default);
+
+    Task CopyFileContentToLocalPathByIdAsync(
+        Guid id, string localPath, CancellationToken cancellationToken = default);
+
+    Task<IEnumerable<UploadedFileDetails>> ListAllUploadedFilesAsync(
         CancellationToken cancellationToken = default);
 }

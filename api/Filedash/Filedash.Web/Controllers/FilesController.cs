@@ -2,6 +2,7 @@
 using Filedash.Domain.Interfaces;
 using Filedash.Web.Attributes;
 using Filedash.Web.Interfaces;
+using Hangfire;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Filedash.Web.Controllers;
@@ -12,16 +13,20 @@ public class FilesController : ControllerBase
 {
     private readonly IMultipartFileUploadProcessor _multipartFileUploadProcessor;
     private readonly IUploadedFilesManagementService _uploadedFilesManagementService;
+    private readonly IFileSettings _fileSettings;
 
     public FilesController(
         IMultipartFileUploadProcessor multipartFileUploadProcessor,
-        IUploadedFilesManagementService uploadedFilesManagementService)
+        IUploadedFilesManagementService uploadedFilesManagementService, 
+        IFileSettings fileSettings)
     {
         _multipartFileUploadProcessor = multipartFileUploadProcessor;
         _uploadedFilesManagementService = uploadedFilesManagementService;
+        _fileSettings = fileSettings;
     }
 
     [DisableFormValueModelBinding]
+    [DisableRequestSizeLimit]
     [HttpPost("upload")]
     public async Task<IActionResult> UploadFile(CancellationToken cancellationToken)
     {
@@ -51,6 +56,37 @@ public class FilesController : ControllerBase
 
         return ProcessServiceResult(result);
     }
+
+    [HttpGet]
+    [Route("download/{id}")]
+    public async Task<IActionResult> DownloadFile(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _uploadedFilesManagementService
+            .DownloadFileContentToLocalPathAsync(id, cancellationToken);
+        
+        if (!result.IsSuccessful)
+        {
+            return BadRequest(result);
+        }
+
+        var (path, fileName) = result.Data;
+
+        ScheduleFileDeleteOnResponseCompleted(path);
+        
+        var fileStream = System.IO.File.Open(path, FileMode.Open);
+        
+        return File(fileStream, "application/octet-stream", fileName);
+    }
+
+    private void ScheduleFileDeleteOnResponseCompleted(string path)
+        => Response.OnCompleted(() =>
+        {
+            BackgroundJob.Schedule<IUploadedFilesManagementService>(
+                s => s.DeleteFileAsync(path, default),
+                TimeSpan.FromMinutes(_fileSettings.FileDeleteDelayAfterDownloadInMinutes));
+            
+            return Task.CompletedTask;
+        });
 
     private IActionResult ProcessServiceResult(Result result)
         => result.IsSuccessful

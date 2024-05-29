@@ -4,29 +4,44 @@ namespace Filedash.Domain.Extensions;
 
 public static class TextReaderExtensions
 {
-    public static async Task<string> ReadLinesWithLimit(this TextReader streamReader, int maxLength)
+    public static async Task<string> ReadLinesWithLimitAsync(this StreamReader streamReader, int maxLength)
     {
         var sb = new StringBuilder();
-        const int buffersize = 1;
-        
-        var buffer = new char[buffersize];
+        const int bufferSize = 1000;
 
-        while ((await streamReader.ReadAsync(buffer, 0, buffersize)) > 0)
+        var buffer = new char[bufferSize];
+
+        int bytesRead;
+        while ((bytesRead = await streamReader.ReadAsync(buffer, 0, bufferSize)) > 0)
         {
-            var c = buffer[0];
-
-            if (c is '\r' or '\n')
+            if (bytesRead == default)
             {
                 return sb.ToString();
             }
 
-            sb.Append(c);
-            if (sb.Length > maxLength)
+            var charsToAppend = bytesRead < bufferSize 
+                ? buffer[..bytesRead] 
+                : buffer;
+
+            sb.Append(charsToAppend);
+
+            GuardAgainstMaxLengthReached(sb, maxLength);
+
+            var lastChar = buffer[bytesRead - 1];
+            if (lastChar is '\r' or '\n')
             {
-                throw new InvalidOperationException($"Max binary encoded text length exceeded! Limit: {maxLength}");
+                return sb.ToString();
             }
         }
 
         return sb.ToString();
+    }
+
+    private static void GuardAgainstMaxLengthReached(StringBuilder builder, int maxLength)
+    {
+        if (builder.Length > maxLength)
+        {
+            throw new InvalidOperationException($"Max binary encoded text length exceeded! Limit: {maxLength}");
+        }
     }
 }
