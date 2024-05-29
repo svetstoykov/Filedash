@@ -73,7 +73,7 @@ public class UploadedFilesRepository : IUploadedFilesRepository
             .ProjectTo<UploadedFileDetails>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync(f => f.Id == id, cancellationToken: cancellationToken);
 
-    public async Task CopyFileStreamToLocalPathByIdAsync(
+    public async Task CopyFileContentToLocalPathByIdAsync(
         Guid id, string localPath, CancellationToken cancellationToken = default)
     {
         await using var connection = new SqlConnection(
@@ -100,7 +100,7 @@ public class UploadedFilesRepository : IUploadedFilesRepository
         await data.CopyToAsync(fileStream, cancellationToken);
     }
 
-    public async Task<IEnumerable<UploadedFileDetails>> ListAllUploadedFiles(
+    public async Task<IEnumerable<UploadedFileDetails>> ListAllUploadedFilesAsync(
         CancellationToken cancellationToken = default)
         => await _context.UploadedFiles
             .ProjectTo<UploadedFileDetails>(_mapper.ConfigurationProvider)

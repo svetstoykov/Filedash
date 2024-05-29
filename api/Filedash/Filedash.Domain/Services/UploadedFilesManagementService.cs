@@ -127,7 +127,7 @@ public class UploadedFilesManagementService : IUploadedFilesManagementService
         CancellationToken cancellationToken = default)
     {
         var allFilesList = await _uploadedFilesRepository
-            .ListAllUploadedFiles(cancellationToken);
+            .ListAllUploadedFilesAsync(cancellationToken);
 
         var sortedFiles = allFilesList
             .OrderByDescending(f => f.CreatedDateUtc)
@@ -137,7 +137,7 @@ public class UploadedFilesManagementService : IUploadedFilesManagementService
             .Success(sortedFiles);
     }
 
-    public async Task<Result<(string, string)>> DownloadFileToLocalPathAsync(
+    public async Task<Result<(string, string)>> DownloadFileContentToLocalPathAsync(
         Guid id, CancellationToken cancellationToken = default)
     {
         var file = await _uploadedFilesRepository
@@ -152,7 +152,7 @@ public class UploadedFilesManagementService : IUploadedFilesManagementService
         var path = PrepareTempFilePath(Guid.NewGuid().ToString());
 
         await _uploadedFilesRepository
-            .CopyFileStreamToLocalPathByIdAsync(id, path, cancellationToken);
+            .CopyFileContentToLocalPathByIdAsync(id, path, cancellationToken);
 
         return Result<(string, string)>
             .Success((path, file.FullFileName));

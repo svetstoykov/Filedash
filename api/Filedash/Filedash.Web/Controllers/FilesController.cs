@@ -62,7 +62,7 @@ public class FilesController : ControllerBase
     public async Task<IActionResult> DownloadFile(Guid id, CancellationToken cancellationToken)
     {
         var result = await _uploadedFilesManagementService
-            .DownloadFileToLocalPathAsync(id, cancellationToken);
+            .DownloadFileContentToLocalPathAsync(id, cancellationToken);
         
         if (!result.IsSuccessful)
         {
